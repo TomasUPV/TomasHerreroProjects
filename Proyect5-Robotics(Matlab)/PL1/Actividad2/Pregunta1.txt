@@ -1,0 +1,45 @@
+Cuestion1. ¿Qué movimientos has realizado para calcular para las matrices de transformación 0^T_1, 0^T_2, 0^T_3, 0^T_4, 0^T_5? 
+	
+	He calculado 0^T_1 colocando en x = 0, y = c+d y z = a-d, después rotandolo pi/2 en 	X y -pi en Z.
+	He calculado 0^T_2 colocando en x = -b, y = c+d y z = 0, después rotándolo -pi/2 en 	Z.
+	He calculado 0^T_3 colocando en x = -b, y = c y z = a, después rotándolo -pi/2 en Z 	y pi/2 en X.
+	He calculado 0^T_4 colocando en x = -b, y = c y z = a-d.
+	He calculado 0^T_5 colocando en x = 0, y = 0 y z = a, después rotándolo -pi/2 en X y 	-pi/2 en Y.
+
+Cuestion2. Comprueba si es cierto que 0T1·1T2=0T5·5T4·4T3·3T2 ¿es cierta esta igualdad?Justifica tu respuesta.
+	
+	Sí, la igualdad es cierta.
+	Justificación:Una matriz de transformación A^T_B representa la pose (posición y 	orientación) del sistema B con respecto al sistema A. El principio de encadenamiento 	de transformaciones dice:
+
+		A^T_C = A^T_B * B^T_C
+	Podemos usar esto para analizar ambos lados de tu ecuación:
+	Lado Izquierdo: 0T_1 * 1T_2
+		Según la regla de encadenamiento, 0^T_1 * 1^T_2 = 0^T_2.
+		Esta expresión representa la pose del sistema 2 respecto al 0.
+
+	Lado Derecho: 0^T_5 * 5^T_4 * 4^T_3 * 3T_2
+	Aplicando la regla repetidamente:
+		0^T_5 * 5^T_4 = 0^T_4
+		0^T_4 * 4^T_3 = 0^T_3
+		0^T_3 * 3^T_2 = 0^T_2
+		Esta expresión también representa la pose del sistema 2 respecto al 0.
+
+	Dado que la pose de un sistema (2) respecto a otro (0) es única, no importa el 		camino que uses para calcularla. Ambos lados de la ecuación se simplifican a 0^T_2, 	por lo que la igualdad es verdadera.
+
+
+Cuestion3. Conociendo la matriz de transformación 0^T_2 ¿cuáles son las coordenadas del punto a respecto del sistema de coordenadas 2 (a2), si las coordenadas del punto a respecto del sistema de coordenadas 0 son a0= [-b, c, a-d]^T? Justifica tu respuesta 
+	La fórmula para cambiar de un sistema a otro es a0 = 0^T2*a2 --> a2 = (0^T_2)^-1*a0.
+	A = [-e, 0, a-d] según el dibujo
+
+
+Cuestión4. Conociendo la matriz de transformación 0^T_2 ¿cuáles son las coordenadas del vector director x2 del sistema de coordenadas 2 respecto del sistema de coordenadas 0?
+
+    Cuando haces el vector director del movil respecto al fijo, tendríamos que el vector director son las columnas de la matriz de transformación total.
+
+Cuestion5. Conociendo la matriz de transformación 0^T_2 ¿cuáles son las coordenadas del vector director z0 del sistema de coordenadas 0 respecto del sistema de coordenadas 2? 
+
+    Cuando haces el vector director del fijo respecto al móvil, tendríamos que el vector director son las filas de la matriz de transformación total.
+
+
+
+

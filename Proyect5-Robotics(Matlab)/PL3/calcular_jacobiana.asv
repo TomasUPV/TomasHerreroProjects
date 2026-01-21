@@ -1,0 +1,26 @@
+function [J,r]=calcular_jacobiana(DH,q,tipo)
+    %
+   % DH-> tabla parametros DH
+% q -> vector con las posiciones de las articulaciones 
+% tipo -> vector con el tipo de articulación
+% (0->prismatica;1->revolución)
+
+% Retorno de la función:
+% J-> matriz Jacobiana 6xn
+% r-> rango de la matriz Jacobiana
+
+
+
+
+% J-> matriz Jacobiana 6xn
+
+
+
+% r-> rango de la matriz Jacobiana
+r = rank(J)
+
+%apuntes: relacionar las velocidades angulares con las lineales, permite
+%obtener las velocidades del extremo del robot a partir de las velocidades
+%de cada articulación
+
+%

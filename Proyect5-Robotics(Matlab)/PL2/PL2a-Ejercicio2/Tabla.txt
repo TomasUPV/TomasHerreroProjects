@@ -1,0 +1,98 @@
+===============================================================
+TABLA DE PARÁMETROS DENAVIT-HARTENBERG - ROBOT UR3
+===============================================================
+
+Robot: UR3 (Universal Robots)
+Tipo: Robot colaborativo de 6 grados de libertad
+Todas las articulaciones son rotacionales (6R)
+
+===============================================================
+PARÁMETROS DH DEL UR3
+===============================================================
+
+Valores originales (en metros y radianes):
+
+i  |  θi   |    di     |    ai      |   αi    
+---|-------|-----------|------------|----------
+1  |  q1   |  0.1519   |     0      |   π/2
+2  |  q2   |    0      | -0.24365   |    0
+3  |  q3   |    0      | -0.21325   |    0
+4  |  q4   |  0.11235  |     0      |   π/2
+5  |  q5   |  0.08535  |     0      |  -π/2
+6  |  q6   |  0.0819   |     0      |    0
+
+
+Valores convertidos a milímetros (para MATLAB):
+
+i  |  θi   |    di    |    ai     |   αi    
+---|-------|----------|-----------|----------
+1  |  q1   | 151.9    |     0     |   90°
+2  |  q2   |   0      | -243.65   |    0°
+3  |  q3   |   0      | -213.25   |    0°
+4  |  q4   | 112.35   |     0     |   90°
+5  |  q5   |  85.35   |     0     |  -90°
+6  |  q6   |  81.9    |     0     |    0°
+
+===============================================================
+DESCRIPCIÓN DE LAS ARTICULACIONES
+===============================================================
+
+Articulación 1 (Base): 
+  - Rotación alrededor del eje vertical (Z)
+  - Rango típico: ±360°
+
+Articulación 2 (Hombro):
+  - Rotación del brazo superior
+  - Rango típico: ±360°
+
+Articulación 3 (Codo):
+  - Rotación del antebrazo
+  - Rango típico: ±360°
+
+Articulación 4 (Muñeca 1):
+  - Primera rotación de la muñeca
+  - Rango típico: ±360°
+
+Articulación 5 (Muñeca 2):
+  - Segunda rotación de la muñeca
+  - Rango típico: ±360°
+
+Articulación 6 (Muñeca 3):
+  - Rotación de la herramienta/efector final
+  - Rango típico: ±360°
+
+===============================================================
+TRANSFORMACIÓN HOMOGÉNEA
+===============================================================
+
+Para cada articulación i:
+Ti-1,i = RotZ(θi) × TrasZ(di) × TrasX(ai) × RotX(αi)
+
+Transformación completa del efector final:
+T06 = T01 × T12 × T23 × T34 × T45 × T56
+
+===============================================================
+NOTAS IMPORTANTES
+===============================================================
+
+1. Los valores de "a" (a2 y a3) son NEGATIVOS según la 
+   convención DH estándar utilizada por Universal Robots.
+
+2. El UR3 tiene un alcance máximo de aproximadamente 500 mm.
+
+3. La carga útil máxima es de 3 kg.
+
+4. Todas las articulaciones pueden rotar continuamente (±360°).
+
+5. Los parámetros αi (alpha) alternan entre 90°, 0°, y -90°,
+   lo que permite la versatilidad del robot para orientar
+   el efector final en cualquier dirección.
+
+===============================================================
+FUENTE
+===============================================================
+
+Datos obtenidos de la documentación oficial de Universal Robots:
+https://www.universal-robots.com/articles/ur/application-installation/dh-parameters-for-calculations-of-kinematics-and-dynamics/
+
+===============================================================

@@ -1,0 +1,2 @@
+demo.adb:144:29: warning: "distancia" may be referenced before it has a value
+demo.adb:309:24: warning: "debug_blink_time" may be referenced before it has a value

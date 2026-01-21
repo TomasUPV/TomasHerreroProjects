@@ -1,0 +1,320 @@
+Model {
+  Name			  "corrip"
+  Version		  3.00
+  SimParamPage		  "Solver"
+  SampleTimeColors	  off
+  InvariantConstants	  off
+  WideVectorLines	  off
+  ShowLineWidths	  off
+  ShowPortDataTypes	  off
+  StartTime		  "0.0"
+  StopTime		  "2.335"
+  SolverMode		  "SingleTasking"
+  Solver		  "ode5"
+  RelTol		  "1e-3"
+  AbsTol		  "1e-3"
+  Refine		  "1"
+  MaxStep		  "0.001"
+  InitialStep		  "auto"
+  FixedStep		  "0.001"
+  MaxOrder		  5
+  OutputOption		  "RefineOutputTimes"
+  OutputTimes		  "[]"
+  LoadExternalInput	  off
+  ExternalInput		  "[t, u]"
+  SaveTime		  off
+  TimeSaveName		  "tout"
+  SaveState		  off
+  StateSaveName		  "xout"
+  SaveOutput		  off
+  OutputSaveName	  "yout"
+  LoadInitialState	  off
+  InitialState		  "xInitial"
+  SaveFinalState	  off
+  FinalStateName	  "xFinal"
+  SaveFormat		  "Matrix"
+  LimitMaxRows		  off
+  MaxRows		  "1000"
+  Decimation		  "1"
+  AlgebraicLoopMsg	  "warning"
+  MinStepSizeMsg	  "warning"
+  UnconnectedInputMsg	  "warning"
+  UnconnectedOutputMsg	  "warning"
+  UnconnectedLineMsg	  "warning"
+  InheritedTsInSrcMsg	  "warning"
+  IntegerOverflowMsg	  "warning"
+  UnnecessaryDatatypeConvMsg "none"
+  Int32ToFloatConvMsg	  "warning"
+  SignalLabelMismatchMsg  "none"
+  ConsistencyChecking	  "off"
+  ZeroCross		  on
+  SimulationMode	  "normal"
+  BlockDataTips		  on
+  BlockParametersDataTip  on
+  BlockAttributesDataTip  off
+  BlockPortWidthsDataTip  off
+  BlockDescriptionStringDataTip	off
+  BlockMaskParametersDataTip off
+  ToolBar		  on
+  StatusBar		  on
+  BrowserShowLibraryLinks off
+  BrowserLookUnderMasks	  off
+  OptimizeBlockIOStorage  on
+  BufferReuse		  on
+  BooleanDataType	  off
+  RTWSystemTargetFile	  "grt.tlc"
+  RTWInlineParameters	  off
+  RTWRetainRTWFile	  off
+  RTWTemplateMakefile	  "grt_default_tmf"
+  RTWMakeCommand	  "make_rtw"
+  RTWGenerateCodeOnly	  off
+  ExtModeMexFile	  "ext_comm"
+  ExtModeBatchMode	  off
+  ExtModeTrigType	  "manual"
+  ExtModeTrigMode	  "oneshot"
+  ExtModeTrigPort	  "1"
+  ExtModeTrigElement	  "any"
+  ExtModeTrigDuration	  1000
+  ExtModeTrigHoldOff	  0
+  ExtModeTrigDelay	  0
+  ExtModeTrigDirection	  "rising"
+  ExtModeTrigLevel	  0
+  ExtModeArchiveMode	  "off"
+  ExtModeAutoIncOneShot	  off
+  ExtModeIncDirWhenArm	  off
+  ExtModeAddSuffixToVar	  off
+  ExtModeWriteAllDataToWs off
+  ExtModeArmWhenConnect	  off
+  Created		  "Thu Jan 17 12:09:28 2002"
+  UpdateHistory		  "UpdateHistoryNever"
+  ModifiedByFormat	  "%<Auto>"
+  ModifiedDateFormat	  "%<Auto>"
+  LastModifiedDate	  "Thu Jan 17 12:10:00 2002"
+  ModelVersionFormat	  "1.%<AutoIncrement:1>"
+  ConfigurationManager	  "none"
+  BlockDefaults {
+    Orientation		    "right"
+    ForegroundColor	    "black"
+    BackgroundColor	    "white"
+    DropShadow		    off
+    NamePlacement	    "normal"
+    FontName		    "Helvetica"
+    FontSize		    10
+    FontWeight		    "normal"
+    FontAngle		    "normal"
+    ShowName		    on
+  }
+  AnnotationDefaults {
+    HorizontalAlignment	    "center"
+    VerticalAlignment	    "middle"
+    ForegroundColor	    "black"
+    BackgroundColor	    "white"
+    DropShadow		    off
+    FontName		    "Helvetica"
+    FontSize		    10
+    FontWeight		    "normal"
+    FontAngle		    "normal"
+  }
+  LineDefaults {
+    FontName		    "Helvetica"
+    FontSize		    9
+    FontWeight		    "normal"
+    FontAngle		    "normal"
+  }
+  System {
+    Name		    "corrip"
+    Location		    [2, 74, 626, 470]
+    Open		    on
+    ModelBrowserVisibility  off
+    ModelBrowserWidth	    200
+    ScreenColor		    "white"
+    PaperOrientation	    "landscape"
+    PaperPositionMode	    "auto"
+    PaperType		    "usletter"
+    PaperUnits		    "inches"
+    ZoomFactor		    "100"
+    AutoZoom		    on
+    ReportName		    "simulink-default.rpt"
+    Block {
+      BlockType		      TransferFcn
+      Name		      "Articulación"
+      Position		      [355, 103, 400, 147]
+      Numerator		      "[1]"
+      Denominator	      "[J b]"
+    }
+    Block {
+      BlockType		      Gain
+      Name		      "Cte\nProporcional"
+      Position		      [170, 110, 205, 140]
+      Gain		      "Kp"
+      SaturateOnIntegerOverflow	on
+    }
+    Block {
+      BlockType		      Gain
+      Name		      "Cte de\netapa de\npotencia"
+      Position		      [230, 110, 265, 140]
+      Gain		      "Ka"
+      SaturateOnIntegerOverflow	on
+    }
+    Block {
+      BlockType		      Gain
+      Name		      "Cte de\npar del\nmotor"
+      Position		      [290, 110, 330, 140]
+      Gain		      "Km"
+      SaturateOnIntegerOverflow	on
+    }
+    Block {
+      BlockType		      FromWorkspace
+      Name		      "From\nWorkspace"
+      Position		      [40, 107, 80, 133]
+      VariableName	      "[t,qref]"
+      SampleTime	      "0.001"
+      Interpolate	      on
+      HoldFinalValue	      off
+    }
+    Block {
+      BlockType		      Integrator
+      Name		      "Integrator"
+      Ports		      [1, 1, 0, 0, 0]
+      Position		      [455, 115, 475, 135]
+      ExternalReset	      "none"
+      InitialConditionSource  "internal"
+      InitialCondition	      "0"
+      LimitOutput	      off
+      UpperSaturationLimit    "inf"
+      LowerSaturationLimit    "-inf"
+      ShowSaturationPort      off
+      ShowStatePort	      off
+      AbsoluteTolerance	      "auto"
+    }
+    Block {
+      BlockType		      ToWorkspace
+      Name		      "Par"
+      Position		      [355, 47, 405, 63]
+      VariableName	      "M"
+      Buffer		      "2335"
+      Decimation	      "1"
+      SampleTime	      "0"
+      SaveFormat	      "Matrix"
+    }
+    Block {
+      BlockType		      ToWorkspace
+      Name		      "Posición"
+      Position		      [510, 57, 560, 73]
+      VariableName	      "q"
+      Buffer		      "2335"
+      Decimation	      "1"
+      SampleTime	      "0"
+      SaveFormat	      "Matrix"
+    }
+    Block {
+      BlockType		      Sum
+      Name		      "Sum"
+      Ports		      [2, 1, 0, 0, 0]
+      Position		      [125, 115, 145, 135]
+      IconShape		      "rectangular"
+      Inputs		      "+-"
+      SaturateOnIntegerOverflow	on
+    }
+    Block {
+      BlockType		      ToWorkspace
+      Name		      "Velocidad"
+      Position		      [440, 27, 490, 43]
+      VariableName	      "qpr"
+      Buffer		      "2335"
+      Decimation	      "1"
+      SampleTime	      "0"
+      SaveFormat	      "Matrix"
+    }
+    Line {
+      SrcBlock		      "Cte de\netapa de\npotencia"
+      SrcPort		      1
+      DstBlock		      "Cte de\npar del\nmotor"
+      DstPort		      1
+    }
+    Line {
+      SrcBlock		      "From\nWorkspace"
+      SrcPort		      1
+      DstBlock		      "Sum"
+      DstPort		      1
+    }
+    Line {
+      SrcBlock		      "Cte\nProporcional"
+      SrcPort		      1
+      DstBlock		      "Cte de\netapa de\npotencia"
+      DstPort		      1
+    }
+    Line {
+      SrcBlock		      "Sum"
+      SrcPort		      1
+      DstBlock		      "Cte\nProporcional"
+      DstPort		      1
+    }
+    Line {
+      SrcBlock		      "Cte de\npar del\nmotor"
+      SrcPort		      1
+      Points		      [0, 0]
+      Branch {
+	DstBlock		"Articulación"
+	DstPort			1
+      }
+      Branch {
+	Points			[0, -70]
+	DstBlock		"Par"
+	DstPort			1
+      }
+    }
+    Line {
+      SrcBlock		      "Articulación"
+      SrcPort		      1
+      Points		      [15, 0]
+      Branch {
+	DstBlock		"Integrator"
+	DstPort			1
+      }
+      Branch {
+	Points			[0, -90]
+	DstBlock		"Velocidad"
+	DstPort			1
+      }
+    }
+    Line {
+      SrcBlock		      "Integrator"
+      SrcPort		      1
+      Points		      [15, 0]
+      Branch {
+	Points			[40, 0; 0, 90; -425, 0]
+	DstBlock		"Sum"
+	DstPort			2
+      }
+      Branch {
+	DstBlock		"Posición"
+	DstPort			1
+      }
+    }
+    Annotation {
+      Position		      [277, 97]
+      VerticalAlignment	      "top"
+      Text		      "Corriente"
+    }
+    Annotation {
+      Position		      [157, 97]
+      VerticalAlignment	      "top"
+      Text		      "Error"
+    }
+    Annotation {
+      Position		      [427, 97]
+      VerticalAlignment	      "top"
+      Text		      "Velocidad"
+    }
+    Annotation {
+      Position		      [517, 102]
+      VerticalAlignment	      "top"
+      Text		      "Posición"
+    }
+    Annotation {
+      Position		      [326, 103]
+      Text		      "Par"
+    }
+  }
+}

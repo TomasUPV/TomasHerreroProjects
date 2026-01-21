@@ -1,0 +1,101 @@
+===============================================================
+TABLAS DE PARÁMETROS DENAVIT-HARTENBERG - EJERCICIO 1
+===============================================================
+
+Valores de las cotas:
+a = 400 mm
+b = 100 mm
+c = 300 mm
+d = 200 mm
+
+===============================================================
+ROBOT 1: RPR (Rotacional-Prismática-Rotacional)
+===============================================================
+
+i  | Tipo |  θi   |    di   | ai  |  αi  
+---|------|-------|---------|-----|------
+1  |  R   | q1+90 |  400    |  0  |  90°
+2  |  P   |  0°   |  q2+300 |  0  |  0º
+3  |  R   |  q3   |   200   |  0  |  0°
+
+Leyenda: 
+- q1, q3 son variables angulares (grados)
+- q2 es variable lineal (mm)
+
+
+===============================================================
+ROBOT 2: PRR (Prismática-Rotacional-Rotacional)
+===============================================================
+
+i  | Tipo |  θi  |   di   |   ai   |  αi  
+---|------|------|--------|--------|------
+1  |  P   |  0°  | q1+400 |  100   |  0°
+2  |  R   |  q2  |   0    |  100   |  0°
+3  |  R   |  q3  |   0    |  300   |  0°
+
+Leyenda:
+- q1 es variable lineal (mm)
+- q2, q3 son variables angulares (grados)
+
+
+===============================================================
+ROBOT 3: RRP (Rotacional-Rotacional-Prismática)
+===============================================================
+
+i  | Tipo |  θi  |   di   |   ai   |  αi  
+---|------|------|--------|--------|------
+1  |  R   |  q1  |  400   |   0    | -90°
+2  |  R   | q2-90|   0    |  100   | -90°
+3  |  P   |  0°  | 300+q3 |   0    |  0°
+
+Leyenda:
+- q1, q2 son variables angulares (grados)
+- q3 es variable lineal (mm)
+
+
+===============================================================
+ROBOT 4: RRR (Rotacional-Rotacional-Rotacional)
+===============================================================
+
+i  | Tipo |  θi   |   di   |   ai   |  αi  
+---|------|-------|--------|--------|------
+1  |  R   |  q1   |  400   |   0    |  -90°
+2  |  R   | q2-90 |   0    |  100   |  0°
+3  |  R   |  q3   |   0    |  300   |  0°
+
+Leyenda:
+- q1, q2, q3 son variables angulares (grados)
+
+
+===============================================================
+ROBOT 5: PPP (Prismática-Prismática-Prismática)
+===============================================================
+
+i  | Tipo |  θi  |   di   |   ai   |  αi  
+---|------|------|--------|--------|------
+1  |  P   | -90° | q1+400 |   0    |  90°
+2  |  P   | -90° | q2+100 |   0    |  90°
+3  |  P   | -90° | q3+300 |  300   |  0°
+
+Leyenda:
+- q1, q2, q3 son variables lineales (mm)
+
+
+===============================================================
+RECORDATORIO: MÉTODO DENAVIT-HARTENBERG
+===============================================================
+
+Parámetros DH:
+- θi (theta): Ángulo de rotación alrededor del eje Zi-1
+- di: Distancia a lo largo del eje Zi-1
+- ai: Distancia a lo largo del eje Xi (longitud del eslabón)
+- αi (alpha): Ángulo de rotación alrededor del eje Xi (torsión)
+
+Transformación:
+Ti-1,i = RotZ(θi) × TrasZ(di) × TrasX(ai) × RotX(αi)
+
+Articulaciones:
+- R (Rotacional): Variable = θi, di es constante
+- P (Prismática): Variable = di, θi es constante
+
+===============================================================

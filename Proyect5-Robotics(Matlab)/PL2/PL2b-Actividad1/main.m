@@ -1,0 +1,1751 @@
+ function simulador
+% Simulador de robots industriales 22_23
+%
+%%
+% close all
+global fig_1
+
+[robot, parametrosDH, longitudUltimoEslabon, limitesArticulaciones, dimensionesEntorno, pasosMovimiento] = parametrosSimuladorABB_IRB140sym;
+
+numeroEjes=size(parametrosDH,1);
+
+% posición de origen "home" 
+t1_home = 0; 
+t2_home = 0;
+t3_home = 0;
+t4_home = 0; 
+t5_home = 0;
+t6_home = 0;
+
+loaddata
+InitHome
+
+transparente=0.3;
+setappdata(0,'Transparencia',transparente);   % Current pose    
+
+% creación de los botones de acción
+demo = uicontrol(fig_1,'String','Demo','callback',@demo_button_press,'Position',[20 5 60 20]); %20,5: coordenadas x-y del iniciio del botón; 60: ancho del botón; 20: alto del botón
+
+rnd_demo = uicontrol(fig_1,'String','Aleatorio','callback',@rnd_demo_button_press,'Position',[100 5 80 20]);
+
+clr_trail = uicontrol(fig_1,'String','Limpiar','callback',@clr_trail_button_press, 'Position',[200 5 60 20]);
+ 
+home = uicontrol(fig_1,'String','Home','callback',@home_button_press,'Position',[280 5 70 20]); 
+
+home = uicontrol(fig_1,'String','Ejecutar Programa','callback',@programa_button_press,'Position',[375 5 120 20]); 
+
+creditos = uicontrol(fig_1,'Style','text', 'String','(c) Carlos Ricolfe-Viala, Don Riley','Position',[500 17 500 15]);
+
+checkbox1 = uicontrol(fig_1,'Style','checkbox', 'Value',0,'callback',@checkbox_press,'Position',[231 27 15 15]);
+textCheckbox1 = uicontrol(fig_1,'Style','text', 'String','Pintar ejes','Position',[170 27 60 15]);
+
+transparente_edit = uicontrol(fig_1,'style','edit','String',transparente,'callback',@transparente_edit_press,'Position',[131 27 30 15]); % L, B, W, H
+text_transparente = uicontrol(fig_1,'Style','text', 'String','Transparencia Robot','Position',[20 27 110 15]);
+
+checkbox2 = uicontrol(fig_1,'Style','checkbox', 'Value',0,'Position',[346 27 15 15]);
+textCheckbox1 = uicontrol(fig_1,'Style','text', 'String','Pintar trayectoria','Position',[255 27 90 15]);
+
+pasos_edit = uicontrol(fig_1,'style','edit','String',pasosMovimiento,'callback',@pasos_edit_press,'Position',[461 27 30 15]); % L, B, W, H
+text_pasos = uicontrol(fig_1,'Style','text', 'String','Pasos movimiento','Position',[370 27 90 15]);
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% panel cinemática robot: botones para las 6 articulaciones
+K_p = uipanel(fig_1,'units','pixels','Position',[20 45 265 200],'Title','Ejes (grados):','FontSize',11);
+
+LD = 105; % esquina izquierda, utilizada para fijar la GUI
+HT = 18;  % alto
+BT = 156; % base
+
+%%  botón 1ª articulación
+t1_slider = uicontrol(K_p,'style','slider','Max',(180/pi)*limitesArticulaciones(1,2),'Min',(180/pi)*limitesArticulaciones(1,1),'Value',0,'SliderStep',[0.05 0.2],'callback',@t1_slider_button_press,'Position',[LD BT 120 HT]);
+t1_min = uicontrol(K_p,'style','text','String',num2str((180/pi)*limitesArticulaciones(1,1)),'Position',[LD-30 BT+1 25 HT-4]); 
+t1_max = uicontrol(K_p,'style','text','String',num2str((180/pi)*limitesArticulaciones(1,2)),'Position',[LD+125 BT+1 25 HT-4]); 
+t1_text = uibutton(K_p,'style','text','String','\theta_1','Position',[LD-100 BT 20 HT]); 
+t1_edit = uicontrol(K_p,'style','edit','String',0,'callback',@t1_edit_button_press,'Position',[LD-75 BT 30 HT]); 
+%
+%%  botón 2ª articulación.
+BT = 126;   % altura botón
+t2_slider = uicontrol(K_p,'style','slider','Max',(180/pi)*limitesArticulaciones(2,2),'Min',(180/pi)*limitesArticulaciones(2,1),'Value',0,'SliderStep',[0.05 0.2],'callback',@t2_slider_button_press,'Position',[LD BT 120 HT]);
+t2_min = uicontrol(K_p,'style','text','String',num2str((180/pi)*limitesArticulaciones(2,1)),'Position',[LD-30 BT+1 25 HT-4]); 
+t2_max = uicontrol(K_p,'style','text','String',num2str((180/pi)*limitesArticulaciones(2,2)),'Position',[LD+125 BT+1 25 HT-4]); 
+t2_text = uibutton(K_p,'style','text','String','\theta_2','Position',[LD-100 BT 20 HT]); 
+t2_edit = uicontrol(K_p,'style','edit','String',0,'callback',@t2_edit_button_press,'Position',[LD-75 BT 30 HT]); 
+%
+%%  botón 3ª articulación.
+BT = 96;   % altura botón
+t3_slider = uicontrol(K_p,'style','slider','Max',(180/pi)*limitesArticulaciones(3,2),'Min',(180/pi)*limitesArticulaciones(3,1),'Value',0,'SliderStep',[0.05 0.2],'callback',@t3_slider_button_press,'Position',[LD BT 120 HT]);
+t3_min = uicontrol(K_p,'style','text','String',num2str((180/pi)*limitesArticulaciones(3,1)),'Position',[LD-30 BT+1 25 HT-4]); 
+t3_max = uicontrol(K_p,'style','text','String',num2str((180/pi)*limitesArticulaciones(3,2)),'Position',[LD+125 BT+1 25 HT-4]); 
+t3_text = uibutton(K_p,'style','text','String','\theta_3','Position',[LD-100 BT 20 HT]); 
+t3_edit = uicontrol(K_p,'style','edit','String',0,'callback',@t3_edit_button_press,'Position',[LD-75 BT 30 HT]); 
+%
+%%  botón 4ª articulación.
+BT = 66;   % altura botón
+t4_slider = uicontrol(K_p,'style','slider','Max',(180/pi)*limitesArticulaciones(4,2),'Min',(180/pi)*limitesArticulaciones(4,1),'Value',0,'SliderStep',[0.05 0.2],'callback',@t4_slider_button_press,'Position',[LD BT 120 HT]);
+t4_min = uicontrol(K_p,'style','text','String',num2str((180/pi)*limitesArticulaciones(4,1)),'Position',[LD-30 BT+1 25 HT-4]); 
+t4_max = uicontrol(K_p,'style','text','String',num2str((180/pi)*limitesArticulaciones(4,2)),'Position',[LD+125 BT+1 25 HT-4]); 
+t4_text = uibutton(K_p,'style','text','String','\theta_4','Position',[LD-100 BT 20 HT]); 
+t4_edit = uicontrol(K_p,'style','edit','String',0,'callback',@t4_edit_button_press,'Position',[LD-75 BT 30 HT]); 
+%
+%%  botón 5ª articulación.
+BT = 36;   % altura botón
+t5_slider = uicontrol(K_p,'style','slider','Max',(180/pi)*limitesArticulaciones(5,2),'Min',(180/pi)*limitesArticulaciones(5,1),'Value',0,'SliderStep',[0.05 0.2],'callback',@t5_slider_button_press,'Position',[LD BT 120 HT]);
+t5_min = uicontrol(K_p,'style','text','String',num2str((180/pi)*limitesArticulaciones(5,1)),'Position',[LD-30 BT+1 25 HT-4]); 
+t5_max = uicontrol(K_p,'style','text','String',num2str((180/pi)*limitesArticulaciones(5,2)),'Position',[LD+125 BT+1 25 HT-4]); 
+t5_text = uibutton(K_p,'style','text','String','\theta_5','Position',[LD-100 BT 20 HT]); 
+t5_edit = uicontrol(K_p,'style','edit','String',0,'callback',@t5_edit_button_press,'Position',[LD-75 BT 30 HT]); 
+%
+%%  botón 6ª articulación.
+BT = 6;   % altura botón
+t6_slider = uicontrol(K_p,'style','slider','Max',(180/pi)*limitesArticulaciones(6,2),'Min',(180/pi)*limitesArticulaciones(6,1),'Value',0,'SliderStep',[0.05 0.2],'callback',@t6_slider_button_press,'Position',[LD BT 120 HT]);
+t6_min = uicontrol(K_p,'style','text','String',num2str((180/pi)*limitesArticulaciones(6,1)),'Position',[LD-30 BT+1 25 HT-4]); 
+t6_max = uicontrol(K_p,'style','text','String',num2str((180/pi)*limitesArticulaciones(6,2)),'Position',[LD+125 BT+1 25 HT-4]); 
+t6_text = uibutton(K_p,'style','text','String','\theta_6','Position',[LD-100 BT 20 HT]); 
+t6_edit = uicontrol(K_p,'style','edit','String',0,'callback',@t6_edit_button_press,'Position',[LD-75 BT 30 HT]); % L, B, W, H
+%
+
+%% panel control cinemática robot
+% posicion
+KCtrl_cinematico = uipanel(fig_1,'units','pixels','Position',[20 350 266 145],'Title','Posición TCP (mm):','FontSize',11);
+LD = 115; % pos. izquierda de la GUI
+HT = 16;  % altura
+BT = 55;   % base respecto del panel
+ancho=45;
+
+% coordenadas punto deseado para movL y movC
+t1_text = uibutton(KCtrl_cinematico,'style','text','String','Deseada','Position',[LD-90 BT 20 HT]);
+pDeseadaX_edit = uicontrol(KCtrl_cinematico,'style','edit','String',0,'Position',[LD-50 BT 40 HT]);
+pDeseadaY_edit = uicontrol(KCtrl_cinematico,'style','edit','String',0,'Position',[LD-50+ancho BT 40 HT]);
+pDeseadaZ_edit = uicontrol(KCtrl_cinematico,'style','edit','String',0,'Position',[LD-50+2*ancho BT 40 HT]);
+ctr_circu_pDeseada = uicontrol(KCtrl_cinematico,'String','Copiar','callback',@ctrl_copiarDestino_button_press,'Position',[LD+90 BT-1 45 HT*1.2]);
+
+% coordenadas punto de paso en caso de utilizar moveC
+BT = 75; % altura botón
+t2_text = uibutton(KCtrl_cinematico,'style','text','String','Paso','Position',[LD-100 BT 20 HT]); 
+pPasoX_edit = uicontrol(KCtrl_cinematico,'style','edit','String',0,'Position',[LD-50 BT 40 HT]);
+pPasoY_edit = uicontrol(KCtrl_cinematico,'style','edit','String',0,'Position',[LD-50+ancho BT 40 HT]);
+pPasoZ_edit = uicontrol(KCtrl_cinematico,'style','edit','String',0,'Position',[LD-50+2*ancho BT 40 HT]);
+ctr_circu_pPaso = uicontrol(KCtrl_cinematico,'String','Copiar','callback',@ctrl_copiarPaso_button_press,'Position',[LD+90 BT-1 45 HT*1.2]);
+
+% coordenadas posicion actual
+BT = 95; % altura botón
+t3_text = uibutton(KCtrl_cinematico,'style','text','String','Actual','Position',[LD-95 BT 20 HT]);
+pActualX_text = uicontrol(KCtrl_cinematico,'style','text','String',0,'Position',[LD-50 BT-3 40 HT]);
+pActualY_text = uicontrol(KCtrl_cinematico,'style','text','String',0,'Position',[LD-50+ancho BT-3 40 HT]);
+pActualZ_text = uicontrol(KCtrl_cinematico,'style','text','String',0,'Position',[LD-50+2*ancho BT-3 40 HT]);
+
+% cuadrantes
+BT = 35;
+t6_text = uibutton(KCtrl_cinematico,'style','text','String','Configuración','Position',[LD-80 BT 20 HT]);
+hpop = uicontrol(KCtrl_cinematico,'Style', 'popup',...
+       'String', 'Frente codo arriba|Frente codo abajo|Espalda codo abajo|Espalda codo arriba',...
+       'Position', [LD-5 BT+1 135 HT]);%,...
+       %'Callback', 'setmap');
+
+% botón leyenda
+BT = 112; % altura botón
+t4_text = uibutton(KCtrl_cinematico,'style','text','String','    X            Y             Z     ','Position',[LD-10 BT 60 HT]);
+
+t5text = uibutton(KCtrl_cinematico,'style','text','String','Control cinemático','Position',[LD-90 15 60 HT]);
+ctr_lineal = uicontrol(KCtrl_cinematico,'String','movL','callback',@ctrl_lineal_button_press,'Position',[LD-10 6 45 HT*1.5]);
+ctr_circu = uicontrol(KCtrl_cinematico,'String','movC','callback',@ctrl_circular_button_press,'Position',[LD+40 6 45 HT*1.5]);
+ctr_circu = uicontrol(KCtrl_cinematico,'String','movJ','callback',@ctrl_joints_button_press,'Position',[LD+90 6 45 HT*1.5]);
+
+% Orientacion quaterniones
+KCtrl_orientacion = uipanel(fig_1,'units','pixels','Position',[20 625 266 65]);
+
+LD = 115; % izquierda
+HT = 15;  % altura
+BT = 6;   % base
+ancho=45; % ancho
+
+% quaternion deseado 
+t1_text = uibutton(KCtrl_orientacion,'style','text','String','Deseada','Position',[LD-90 BT 20 HT]);
+q1Deseada_text = uicontrol(KCtrl_orientacion,'style','text','String',0,'Position',[LD-50 BT 40 HT]);
+q2Deseada_text = uicontrol(KCtrl_orientacion,'style','text','String',0,'Position',[LD-50+ancho BT 40 HT]);
+q3Deseada_text = uicontrol(KCtrl_orientacion,'style','text','String',0,'Position',[LD-50+2*ancho BT 40 HT]);
+q4Deseada_text = uicontrol(KCtrl_orientacion,'style','text','String',0,'Position',[LD-50+3*ancho BT 40 HT]);
+
+% quaternion actual 
+BT = 30; % base
+t2_text = uibutton(KCtrl_orientacion,'style','text','String','Actual','Position',[LD-95 BT 20 HT]); 
+q1Actual_text = uicontrol(KCtrl_orientacion,'style','text','String',0,'Position',[LD-50 BT-3 40 HT]);
+q2Actual_text = uicontrol(KCtrl_orientacion,'style','text','String',0,'Position',[LD-50+ancho BT-3 40 HT]);
+q3Actual_text = uicontrol(KCtrl_orientacion,'style','text','String',0,'Position',[LD-50+2*ancho BT-3 40 HT]);
+q4Actual_text = uicontrol(KCtrl_orientacion,'style','text','String',0,'Position',[LD-50+3*ancho BT-3 40 HT]);
+
+BT = 45; % botón leyenda
+t3_text = uibutton(KCtrl_orientacion,'style','text','String','    q_{1}           q_{2}            q_{3}            q_{4}','Position',[LD+5 BT 60 HT]);
+
+KCtrl_orientacion_vector = uipanel(fig_1,'units','pixels','Position',[20 690 266 105],'Title','Orientación TCP (quaterniones):','FontSize',11);
+
+% vector quaternion deseado 
+BT = 25; % botón leyenda
+t1_text = uibutton(KCtrl_orientacion_vector,'style','text','String','Deseada','Position',[LD-90 BT 20 HT]);
+vXDeseada_edit = uicontrol(KCtrl_orientacion_vector,'style','edit','String',0,'callback',@vAng_edit_button_press,'Position',[LD-50 BT 40 HT]);
+vYDeseada_edit = uicontrol(KCtrl_orientacion_vector,'style','edit','String',0,'callback',@vAng_edit_button_press,'Position',[LD-50+ancho BT 40 HT]);
+vZDeseada_edit = uicontrol(KCtrl_orientacion_vector,'style','edit','String',0,'callback',@vAng_edit_button_press,'Position',[LD-50+2*ancho BT 40 HT]);
+angDeseada_edit = uicontrol(KCtrl_orientacion_vector,'style','edit','String',0,'callback',@vAng_edit_button_press,'Position',[LD-50+3*ancho BT 40 HT]);
+
+% vector quaternion actual 
+BT = 45; % base
+t2_text = uibutton(KCtrl_orientacion_vector,'style','text','String','Actual','Position',[LD-95 BT 20 HT]); 
+vXActual_text = uicontrol(KCtrl_orientacion_vector,'style','text','String',0,'Position',[LD-50 BT-3 40 HT]);
+vYActual_text = uicontrol(KCtrl_orientacion_vector,'style','text','String',0,'Position',[LD-50+ancho BT-3 40 HT]);
+vZActual_text = uicontrol(KCtrl_orientacion_vector,'style','text','String',0,'Position',[LD-50+2*ancho BT-3 40 HT]);
+angActual_text = uicontrol(KCtrl_orientacion_vector,'style','text','String',0,'Position',[LD-50+3*ancho BT-3 40 HT]);
+
+BT = 60; % botón leyenda
+t3_text = uibutton(KCtrl_orientacion_vector,'style','text','String',' vector (x, y, z)              Ángulo','Position',[LD+20 BT 60 HT]);
+
+checkboxV = uicontrol(KCtrl_orientacion_vector,'Style','checkbox', 'Value',0,'callback',@checkboxVector_press,'Position',[LD-25 6 15 15]);
+textCheckboxV = uicontrol(KCtrl_orientacion_vector,'Style','text', 'String','Pintar vector','Position',[LD-105 4 65 15]);
+ctr_vector_copia = uicontrol(KCtrl_orientacion_vector,'String','Copiar','callback',@ctrl_copiarVector_button_press,'Position',[LD+90 5 45 HT*1.2]);
+
+
+% Orientacion Euler
+KCtrl_orientacionEuler = uipanel(fig_1,'units','pixels','Position',[20 515 266 95],'Title','Orientación TCP (Euler III):','FontSize',11);
+
+LD = 115; % izquierda
+HT = 15;  % altura
+BT = 6;   % base
+ancho=45; % ancho
+
+% euler deseado 
+t1_text = uibutton(KCtrl_orientacionEuler,'style','text','String','Deseada','Position',[LD-90 BT 20 HT]);
+eXDeseada_edit = uicontrol(KCtrl_orientacionEuler,'style','edit','String',0,'callback',@euler_edit_button_press,'Position',[LD-50 BT 40 HT]);
+eYDeseada_edit = uicontrol(KCtrl_orientacionEuler,'style','edit','String',-90,'callback',@euler_edit_button_press,'Position',[LD-50+ancho BT 40 HT]);
+eZDeseada_edit = uicontrol(KCtrl_orientacionEuler,'style','edit','String',180,'callback',@euler_edit_button_press,'Position',[LD-50+2*ancho BT 40 HT]);
+ctr_circu_euler = uicontrol(KCtrl_orientacionEuler,'String','Copiar','callback',@ctrl_copiarEuler_button_press,'Position',[LD+90 5 45 HT*1.2]);
+
+% euler actual 
+BT = 30; % base
+t2_text = uibutton(KCtrl_orientacionEuler,'style','text','String','Actual','Position',[LD-95 BT 20 HT]); 
+eXActual_text = uicontrol(KCtrl_orientacionEuler,'style','text','String',0,'Position',[LD-50 BT-3 40 HT]);
+eYActual_text = uicontrol(KCtrl_orientacionEuler,'style','text','String',0,'Position',[LD-50+ancho BT-3 40 HT]);
+eZActual_text = uicontrol(KCtrl_orientacionEuler,'style','text','String',0,'Position',[LD-50+2*ancho BT-3 40 HT]);
+
+BT = 55; % botón leyenda
+t3_text = uibutton(KCtrl_orientacionEuler,'style','text','String','giro X     giro Y      giro Z','Position',[LD-15 BT 60 HT]);
+
+% punto Muñeca
+KCtrl_puntoMunyeca = uipanel(fig_1,'units','pixels','Position',[20 260 266 75],'Title','Posición Punto Muñeca (mm):','FontSize',11);
+LD = 115; % pos. izquierda de la GUI
+HT = 16;  % altura
+BT = 35;   % base respecto del panel
+ancho=45;
+
+% coordenadas punto de paso en caso de utilizar moveC
+BT = 6; % altura botón
+t2_text = uibutton(KCtrl_puntoMunyeca,'style','text','String','Deseada','Position',[LD-100 BT 20 HT]); 
+pMunecaDeseadoX_text = uicontrol(KCtrl_puntoMunyeca,'style','text','String',0,'Position',[LD-50 BT 40 HT]);
+pMunecaDeseadoY_text = uicontrol(KCtrl_puntoMunyeca,'style','text','String',0,'Position',[LD-50+ancho BT 40 HT]);
+pMunecaDeseadoZ_text = uicontrol(KCtrl_puntoMunyeca,'style','text','String',0,'Position',[LD-50+2*ancho BT 40 HT]);
+
+% coordenadas posicion actual
+BT = 25; % altura botón
+t3_text = uibutton(KCtrl_puntoMunyeca,'style','text','String','Actual','Position',[LD-95 BT 20 HT]);
+pMunecaActualX_text = uicontrol(KCtrl_puntoMunyeca,'style','text','String',0,'Position',[LD-50 BT-3 40 HT]);
+pMunecaActualY_text = uicontrol(KCtrl_puntoMunyeca,'style','text','String',0,'Position',[LD-50+ancho BT-3 40 HT]);
+pMunecaActualZ_text = uicontrol(KCtrl_puntoMunyeca,'style','text','String',0,'Position',[LD-50+2*ancho BT-3 40 HT]);
+
+% botón leyenda
+BT = 42; % altura botón
+t4_text = uibutton(KCtrl_puntoMunyeca,'style','text','String','    X            Y             Z','Position',[LD-20 BT 60 HT]);
+
+
+euler_edit_button_press(0,0);
+actualizarTCP_PM(parametrosDH, [0 0 0 0 0 0]);
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% sliders para los movimientos eje a eje del robot
+% Slider movimiento 1ª articulación.
+    function t1_slider_button_press(h,dummy)
+        slider_value = (pi/180)*round(get(h,'Value'));
+        %set(t1_edit,'string',(180/pi)*slider_value);
+        % valores actuales de las articulaciones
+        posicionArticulacionInicial = getappdata(0,'ThetaOld');
+        % valor final del movimiento
+        posicionArticulacionFinal = posicionArticulacionInicial;
+        posicionArticulacionFinal(1) = slider_value + t1_home;
+        posicionesArticulaciones = incrementoLinealArticulaciones(posicionArticulacionInicial, posicionArticulacionFinal, pasosMovimiento);
+        animacionRobot(posicionesArticulaciones);
+
+    end
+%
+%% Slider movimiento 2ª articulación.
+    function t2_slider_button_press(h,dummy)
+        slider_value = (pi/180)*round(get(h,'Value'));
+        set(t2_edit,'string',(180/pi)*slider_value);
+        % valores actuales de las articulaciones
+        posicionInicial = getappdata(0,'ThetaOld');
+        % valor final del movimiento
+        posicionFinal = posicionInicial;
+        posicionFinal(2) = slider_value + t2_home;
+        posicionesArticulaciones = incrementoLinealArticulaciones(posicionInicial, posicionFinal, pasosMovimiento);
+        animacionRobot(posicionesArticulaciones);
+    end
+%
+%% Slider  movimiento 3ª articulación..
+    function t3_slider_button_press(h,dummy)
+        slider_value = (pi/180)*round(get(h,'Value'));
+        set(t3_edit,'string',(180/pi)*slider_value);
+        % valores actuales de las articulaciones
+        posicionInicial = getappdata(0,'ThetaOld');
+        % valor final del movimiento
+        posicionFinal = posicionInicial;
+        posicionFinal(3) = slider_value + t3_home;
+        posicionesArticulaciones = incrementoLinealArticulaciones(posicionInicial, posicionFinal, pasosMovimiento);
+        animacionRobot(posicionesArticulaciones);
+    end
+%
+%% Slider  movimiento 4ª articulación.
+    function t4_slider_button_press(h,dummy)
+        slider_value = (pi/180)*round(get(h,'Value'));
+        set(t4_edit,'string',(180/pi)*slider_value);
+        % valores actuales de las articulaciones
+        posicionInicial = getappdata(0,'ThetaOld');
+        % valor final del movimiento
+        posicionFinal = posicionInicial;
+        posicionFinal(4) = slider_value + t4_home;
+        posicionesArticulaciones = incrementoLinealArticulaciones(posicionInicial, posicionFinal, pasosMovimiento);
+        animacionRobot(posicionesArticulaciones);
+    end
+%
+%% Slider  movimiento 5ª articulación.
+    function t5_slider_button_press(h,dummy)
+        slider_value = (pi/180)*round(get(h,'Value'));
+        set(t5_edit,'string',(180/pi)*slider_value);
+        % valores actuales de las articulaciones
+        posicionInicial = getappdata(0,'ThetaOld');
+        % valor final del movimiento
+        posicionFinal = posicionInicial;
+        posicionFinal(5) = slider_value + t5_home;
+        posicionesArticulaciones = incrementoLinealArticulaciones(posicionInicial, posicionFinal, pasosMovimiento);
+        animacionRobot(posicionesArticulaciones);
+    end
+%
+%% Slider  movimiento 6ª articulación.
+    function t6_slider_button_press(h,dummy)
+        slider_value = (pi/180)*round(get(h,'Value'));
+        set(t6_edit,'string',(180/pi)*slider_value);
+        % valores actuales de las articulaciones
+        posicionInicial = getappdata(0,'ThetaOld');
+        % valor final del movimiento
+        posicionFinal = posicionInicial;
+        posicionFinal(6) = slider_value + t6_home;
+        posicionesArticulaciones = incrementoLinealArticulaciones(posicionInicial, posicionFinal, pasosMovimiento);
+        animacionRobot(posicionesArticulaciones);
+    end
+%
+%% botones de edición movimiento eje a eje del robot
+% botón 1ª articulación
+    function t1_edit_button_press(h,dummy)
+        user_entry = (pi/180)*check_edit(h,(180/pi)*limitesArticulaciones(1,1),(180/pi)*limitesArticulaciones(1,2),0,t1_edit);
+        set(t1_slider,'Value',(180/pi)*user_entry);  
+        % valores actuales de las articulaciones
+        posicionInicial = getappdata(0,'ThetaOld');
+        % valor final del movimiento
+        posicionFinal = posicionInicial;
+        posicionFinal(1) = user_entry + t1_home;
+        posicionesArticulaciones = incrementoLinealArticulaciones(posicionInicial, posicionFinal, pasosMovimiento);
+        animacionRobot(posicionesArticulaciones);
+    end
+%
+% botón 2ª articulación
+    function t2_edit_button_press(h,dummy)
+        user_entry = (pi/180)*check_edit(h,(180/pi)*limitesArticulaciones(2,1),(180/pi)*limitesArticulaciones(2,2),0,t2_edit);
+        set(t2_slider,'Value',(180/pi)*user_entry);  % slider = text box.
+        % valores actuales de las articulaciones
+        posicionInicial = getappdata(0,'ThetaOld');
+        % valor final del movimiento
+        posicionFinal = posicionInicial;
+        posicionFinal(2) = user_entry + t2_home;
+        posicionesArticulaciones = incrementoLinealArticulaciones(posicionInicial, posicionFinal, pasosMovimiento);
+        animacionRobot(posicionesArticulaciones);
+    end
+% 
+% botón 3ª articulación
+    function t3_edit_button_press(h,dummy)
+        user_entry = (pi/180)*check_edit(h,(180/pi)*limitesArticulaciones(3,1),(180/pi)*limitesArticulaciones(3,2),0,t3_edit);
+        set(t3_slider,'Value',(180/pi)*user_entry);  % slider = text box.
+        % valores actuales de las articulaciones
+        posicionInicial = getappdata(0,'ThetaOld');
+        % valor final del movimiento
+        posicionFinal = posicionInicial;
+        posicionFinal(3) = user_entry + t3_home;
+        posicionesArticulaciones = incrementoLinealArticulaciones(posicionInicial, posicionFinal, pasosMovimiento);
+        animacionRobot(posicionesArticulaciones);
+    end
+% 
+% botón 4ª articulación
+    function t4_edit_button_press(h,dummy)
+        user_entry = (pi/180)*check_edit(h,(180/pi)*limitesArticulaciones(4,1),(180/pi)*limitesArticulaciones(4,2),0,t4_edit);
+        set(t4_slider,'Value',(180/pi)*user_entry);  % slider = text box.
+        % valores actuales de las articulaciones
+        posicionInicial = getappdata(0,'ThetaOld');
+        % valor final del movimiento
+        posicionFinal = posicionInicial;
+        posicionFinal(4) = user_entry + t4_home;
+        posicionesArticulaciones = incrementoLinealArticulaciones(posicionInicial, posicionFinal, pasosMovimiento);
+        animacionRobot(posicionesArticulaciones);
+    end
+%
+% botón 5ª articulación
+    function t5_edit_button_press(h,dummy)
+        user_entry = (pi/180)*check_edit(h,(180/pi)*limitesArticulaciones(5,1),(180/pi)*limitesArticulaciones(5,2),0,t5_edit);
+        set(t5_slider,'Value',(180/pi)*user_entry);  % slider = text box.
+        % valores actuales de las articulaciones
+        posicionInicial = getappdata(0,'ThetaOld');
+        % valor final del movimiento
+        posicionFinal = posicionInicial;
+        posicionFinal(5) = user_entry + t5_home;
+        posicionesArticulaciones = incrementoLinealArticulaciones(posicionInicial, posicionFinal, pasosMovimiento);
+        animacionRobot(posicionesArticulaciones);
+    end
+% 
+% botón 6ª articulación
+    function t6_edit_button_press(h,dummy)
+        user_entry = (pi/180)*check_edit(h,(180/pi)*limitesArticulaciones(6,1),(180/pi)*limitesArticulaciones(6,2),0,t6_edit);
+        set(t6_slider,'Value',(180/pi)*user_entry);  % slider = text box.
+        % valores actuales de las articulaciones
+        posicionInicial = getappdata(0,'ThetaOld');
+        % valor final del movimiento
+        posicionFinal = posicionInicial;
+        posicionFinal(6) = user_entry + t6_home;
+        posicionesArticulaciones = incrementoLinealArticulaciones(posicionInicial, posicionFinal, pasosMovimiento);
+        animacionRobot(posicionesArticulaciones);
+    end
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% verificación de los valores introducidos en las cajas de texto en función valores máximos y mínimos de las articulaciones
+    function user_entry = check_edit(h,min_v,max_v,default,h_edit)
+        % h: manejador de la gui
+        % min_v: valor mínimos
+        % max_v: valor máximo
+        % default: valor por defecto si el usuario no introduce ningún valor
+        % h_edit: valor de edición a actualizar
+        %
+        user_entry = str2double(get(h,'string'));
+        if isnan(user_entry)
+            errordlg(['You must enter a numeric value, defaulting to ',num2str(default),'.'],'Bad Input','modal')
+            set(h_edit,'string',default);
+            user_entry = default;
+        end
+        %
+        if user_entry < min_v
+            errordlg(['Minimum limit is ',num2str(min_v),' degrees, using ',num2str(min_v),'.'],'Bad Input','modal')
+            user_entry = min_v;
+            set(h_edit,'string',user_entry);
+        end
+        if user_entry > max_v
+            errordlg(['Maximum limit is ',num2str(max_v),' degrees, using ',num2str(max_v),'.'],'Bad Input','modal')
+            user_entry = max_v;
+            set(h_edit,'string',user_entry);
+        end
+    end
+%
+%% función para el desarrollo del control cinemático lineal
+    function ctrl_lineal_button_press(h,dummy)
+        % valores actuales de las articulaciones
+        posicionArticulacionesInicial = getappdata(0,'ThetaOld');
+        
+        x = str2double(get(pActualX_text,'string'));
+        y = str2double(get(pActualY_text,'string'));
+        z = str2double(get(pActualZ_text,'string'));
+        posicionActual = [x; y; z];
+        
+        % valor final del movimiento
+        x = str2double(get(pDeseadaX_edit,'string'));
+        y = str2double(get(pDeseadaY_edit,'string'));
+        z = str2double(get(pDeseadaZ_edit,'string'));
+
+        q1 = str2double(get(q1Deseada_text,'string'));
+        q2 = str2double(get(q2Deseada_text,'string'));
+        q3 = str2double(get(q3Deseada_text,'string'));
+        q4 = str2double(get(q4Deseada_text,'string'));
+        
+        posicionDeseada = [x; y; z];
+        orientacionDeseada = [q1 q2 q3 q4];
+        configuracion = get(hpop, 'Value');
+
+        posicionesArticulaciones = moveL(parametrosDH, posicionActual, posicionDeseada, orientacionDeseada, configuracion, pasosMovimiento);
+        animacionRobot(posicionesArticulaciones);
+    end
+%% función botón movJ
+    function ctrl_joints_button_press(h,dummy)
+        % valores actuales de las articulaciones
+        posicionArticulacionesInicial = getappdata(0,'ThetaOld');
+        % valor final del movimiento
+        x = str2double(get(pDeseadaX_edit,'string'));
+        y = str2double(get(pDeseadaY_edit,'string'));
+        z = str2double(get(pDeseadaZ_edit,'string'));
+
+        q1 = str2double(get(q1Deseada_text,'string'));
+        q2 = str2double(get(q2Deseada_text,'string'));
+        q3 = str2double(get(q3Deseada_text,'string'));
+        q4 = str2double(get(q4Deseada_text,'string'));
+        
+        posicionDeseada = [x; y; z];
+        orientacionDeseada = [q1 q2 q3 q4];
+        configuracion = get(hpop, 'Value');
+
+        posicionesArticulaciones = moveJ(parametrosDH, posicionArticulacionesInicial, posicionDeseada, orientacionDeseada, configuracion, pasosMovimiento);
+        animacionRobot(posicionesArticulaciones);
+   end
+
+%% función para el desarrollo del control cinemático circular
+    function ctrl_circular_button_press(h,dummy)
+        % valores actuales de las articulaciones
+       % posicionArticulacionesInicial = getappdata(0,'ThetaOld');
+        
+        x = str2double(get(pActualX_text,'string'));
+        y = str2double(get(pActualY_text,'string'));
+        z = str2double(get(pActualZ_text,'string'));
+        posicionActual = [x; y; z];
+        
+        % valor final del movimiento
+        x = str2double(get(pDeseadaX_edit,'string'));
+        y = str2double(get(pDeseadaY_edit,'string'));
+        z = str2double(get(pDeseadaZ_edit,'string'));
+
+        q1 = str2double(get(q1Deseada_text,'string'));
+        q2 = str2double(get(q2Deseada_text,'string'));
+        q3 = str2double(get(q3Deseada_text,'string'));
+        q4 = str2double(get(q4Deseada_text,'string'));
+        
+        posicionDeseada = [x; y; z];
+        orientacionDeseada = [q1 q2 q3 q4];
+        configuracion = get(hpop, 'Value');
+
+        % valor punto paso del movimiento
+        x = str2double(get(pPasoX_edit,'string'));
+        y = str2double(get(pPasoY_edit,'string'));
+        z = str2double(get(pPasoZ_edit,'string'));
+        posicionPaso = [x; y; z];
+
+
+        posicionesArticulaciones = moveC(parametrosDH, posicionActual, posicionPaso, posicionDeseada, orientacionDeseada, configuracion, pasosMovimiento);
+        animacionRobot(posicionesArticulaciones);
+    end
+
+
+%% función botón de Demo
+    function demo_button_press(h,dummy)
+        
+        posicionArticulacionesInicial = getappdata(0,'ThetaOld');
+        q1 = str2double(get(q1Deseada_text,'string'));
+        q2 = str2double(get(q2Deseada_text,'string'));
+        q3 = str2double(get(q3Deseada_text,'string'));
+        q4 = str2double(get(q4Deseada_text,'string'));
+        orientacionDeseada = [q1 q2 q3 q4];
+
+        for t = 0:.1:7.25*pi
+            x = 10*t*cos(t);
+            y = 650-100*t*(t)/(50*pi);
+            z = 400+10*t*sin(t);
+            posicionDeseada = [x; y; z];
+            if t>0
+                pasosMovimiento = 2;% número de pasos desde inicio al primer punto y desde el último al origne
+            end
+                
+            posicionesArticulaciones = moveJ(parametrosDH, posicionArticulacionesInicial, posicionDeseada, orientacionDeseada, 1, pasosMovimiento);
+            animacionRobot(posicionesArticulaciones);
+            posicionArticulacionesInicial = posicionesArticulaciones(pasosMovimiento,:);
+            
+        end
+        pasosMovimiento = str2double(get(pasos_edit,'string'));
+        if pasosMovimiento < 2
+            pasosMovimiento = 2;
+        end
+        gohome
+
+    end
+
+%% función boton HOME
+    function home_button_press(h,dummy)
+        gohome
+    end
+
+%% función boton HOME
+    function programa_button_press(h,dummy)
+        posicionesArticulaciones = programa(parametrosDH);
+        animacionRobot(posicionesArticulaciones);
+    end
+
+%% función borrado puntos de las trayectorias
+    function clr_trail_button_press(h,dummy)
+        handles = getappdata(0,'patch_h');           
+        Tr = handles(9);
+        setappdata(0,'xtrail',0); % used for trail tracking.
+        setappdata(0,'ytrail',0); % used for trail tracking.
+        setappdata(0,'ztrail',0); % used for trail tracking.
+        %
+        set(Tr,'xdata',0,'ydata',0,'zdata',0);
+    end
+
+%% función trayectoria aleatoria
+    function rnd_demo_button_press(h, dummy)
+        posicionArticulacionesInicial = getappdata(0,'ThetaOld');
+
+        theta1 = pi/180*(-180 + 360*rand(1)); 
+        theta2 = pi/180*(-90 + 200*rand(1)); 
+        theta3 = pi/180*(-230 + 280*rand(1));
+        theta4 = pi/180*(-200 + 400*rand(1));
+        theta5 = pi/180*(-115 + 230*rand(1));
+        theta6 = pi/180*(-400 + 800*rand(1));
+
+        posicionArticulacionesFinal=[theta1+t1_home,theta2+t2_home,theta3+t3_home,theta4+t4_home,theta5+t5_home,theta6+t6_home];
+        
+        posicionesArticulaciones = incrementoLinealArticulaciones(posicionArticulacionesInicial, posicionArticulacionesFinal, pasosMovimiento);
+        
+        animacionRobot(posicionesArticulaciones);
+    end
+
+%% función para dibujar el vector del quaternion
+    function checkboxVector_press(h,dummy)
+
+        handles = getappdata(0,'vectorQuaternion_h');
+        vectorQuaternion = handles(1);
+
+        if get(checkbox1, 'Value')
+            if get(checkboxV, 'Value')
+                set(vectorQuaternion,'Visible','On');
+            else
+                set(vectorQuaternion,'Visible','Off');
+            end
+        end
+    end
+%% función para dibujar los ejes del robot
+    function checkbox_press(h,dummy)
+        %disp('checkbox_press');
+
+        handles = getappdata(0,'vectorQuaternion_h');
+        vectorQuaternion = handles(1);
+
+        if get(checkbox1, 'Value')
+            value='On';
+            transparente = str2double(get(transparente_edit, 'String'));
+            if get(checkboxV, 'Value')
+                set(vectorQuaternion,'Visible',value);
+            end
+        else
+            value='Off';
+            transparente = 1;
+            set(vectorQuaternion,'Visible',value);
+        end
+        
+        handles = getappdata(0,'ejes0_h');
+        ejeX = handles(1);
+        ejeY = handles(2);
+        ejeZ = handles(3);
+        ejeO = handles(4);
+        textoZ = handles(5);
+        textoX = handles(6);
+
+        set(ejeX,'Visible',value);
+        set(ejeY,'Visible',value);
+        set(ejeZ,'Visible',value);
+        set(ejeO,'Visible',value);
+        set(textoZ,'Visible',value);
+        set(textoX,'Visible',value);
+        
+        if numeroEjes>=1
+            handles = getappdata(0,'ejes1_h');
+            ejeX = handles(1);
+            ejeY = handles(2);
+            ejeZ = handles(3);
+            ejeO = handles(4);
+            textoZ = handles(5);
+            textoX = handles(6);
+
+            set(ejeX,'Visible',value);
+            set(ejeY,'Visible',value);
+            set(ejeZ,'Visible',value);
+            set(ejeO,'Visible',value);
+            set(textoZ,'Visible',value);
+            set(textoX,'Visible',value);
+        end
+        
+        if numeroEjes>=2
+            handles = getappdata(0,'ejes2_h');
+            ejeX = handles(1);
+            ejeY = handles(2);
+            ejeZ = handles(3);
+            ejeO = handles(4);
+            textoZ = handles(5);
+            textoX = handles(6);
+
+            set(ejeX,'Visible',value);
+            set(ejeY,'Visible',value);
+            set(ejeZ,'Visible',value);
+            set(ejeO,'Visible',value);
+            set(textoZ,'Visible',value);
+            set(textoX,'Visible',value);
+        end
+        
+        if numeroEjes>=3
+            handles = getappdata(0,'ejes3_h');
+            ejeX = handles(1);
+            ejeY = handles(2);
+            ejeZ = handles(3);
+            ejeO = handles(4);
+            textoZ = handles(5);
+            textoX = handles(6);
+
+            set(ejeX,'Visible',value);
+            set(ejeY,'Visible',value);
+            set(ejeZ,'Visible',value);
+            set(ejeO,'Visible',value);
+            set(textoZ,'Visible',value);
+            set(textoX,'Visible',value);
+        end
+        
+        if numeroEjes>=4
+            handles = getappdata(0,'ejes4_h');
+            ejeX = handles(1);
+            ejeY = handles(2);
+            ejeZ = handles(3);
+            ejeO = handles(4);
+            textoZ = handles(5);
+            textoX = handles(6);
+
+            set(ejeX,'Visible',value);
+            set(ejeY,'Visible',value);
+            set(ejeZ,'Visible',value);
+            set(ejeO,'Visible',value);
+            set(textoZ,'Visible',value);
+            set(textoX,'Visible',value);
+        end
+        
+        if numeroEjes>=5
+            handles = getappdata(0,'ejes5_h');
+            ejeX = handles(1);
+            ejeY = handles(2);
+            ejeZ = handles(3);
+            ejeO = handles(4);
+            textoZ = handles(5);
+            textoX = handles(6);
+
+            set(ejeX,'Visible',value);
+            set(ejeY,'Visible',value);
+            set(ejeZ,'Visible',value);
+            set(ejeO,'Visible',value);
+            set(textoZ,'Visible',value);
+            set(textoX,'Visible',value);
+        end
+        
+        if numeroEjes>=6
+            handles = getappdata(0,'ejes6_h');
+            ejeX = handles(1);
+            ejeY = handles(2);
+            ejeZ = handles(3);
+            ejeO = handles(4);
+            textoZ = handles(5);
+            textoX = handles(6);
+
+            set(ejeX,'Visible',value);
+            set(ejeY,'Visible',value);
+            set(ejeZ,'Visible',value);
+            set(ejeO,'Visible',value);
+            set(textoZ,'Visible',value);
+            set(textoX,'Visible',value);
+        end
+        
+        setappdata(0,'Trasparencia',transparente);   
+
+        handles = getappdata(0,'patch_h');           %
+        L1 = handles(1);
+        L2 = handles(2);
+        L3 = handles(3);
+        L4 = handles(4);
+        L5 = handles(5);
+        L6 = handles(6);
+        L7 = handles(7);
+            
+        set(L1, 'FaceAlpha',transparente);
+        set(L2, 'FaceAlpha',transparente);
+        set(L3, 'FaceAlpha',transparente);
+        set(L4, 'FaceAlpha',transparente);
+        set(L5, 'FaceAlpha',transparente);
+        set(L6, 'FaceAlpha',transparente);
+        set(L7, 'FaceAlpha',transparente);
+        
+    end
+
+%% función actualizar pasos del movimiento
+    function pasos_edit_press(h,dummy)
+        pasosMovimiento = str2double(get(pasos_edit,'string'));
+        if pasosMovimiento < 2
+            pasosMovimiento = 2;
+        end
+    end
+
+%% función dibujado transparencia elementos del robot
+    function transparente_edit_press(h,dummy)
+
+        transparente = check_edit(h,0,1,0,transparente_edit);
+        setappdata(0,'Trasparencia',transparente);       
+
+        handles = getappdata(0,'patch_h');          
+        L1 = handles(1);
+        L2 = handles(2);
+        L3 = handles(3);
+        L4 = handles(4);
+        L5 = handles(5);
+        L6 = handles(6);
+        L7 = handles(7);
+            
+        set(L1, 'FaceAlpha',transparente);
+        set(L2, 'FaceAlpha',transparente);
+        set(L3, 'FaceAlpha',transparente);
+        set(L4, 'FaceAlpha',transparente);
+        set(L5, 'FaceAlpha',transparente);
+        set(L6, 'FaceAlpha',transparente);
+        set(L7, 'FaceAlpha',transparente);
+
+    end
+
+%%  funcion para copiar la orientacion Euler deseada igual que la actual
+     function ctrl_copiarEuler_button_press(h,dummy)
+        eX = str2double(get(eXActual_text,'string'));
+        eY = str2double(get(eYActual_text,'string'));
+        eZ = str2double(get(eZActual_text,'string'));
+        set(eXDeseada_edit,'string',eX);
+        set(eYDeseada_edit,'string',eY);
+        set(eZDeseada_edit,'string',eZ);
+      
+        eX = eX * pi / 180;
+        eY = eY * pi / 180;
+        eZ = eZ * pi / 180;
+
+        [R] = euler2rot(eX, eY, eZ);
+        quaterniones = rot2quat(R);
+        if (quaterniones(1) < 0.0001) && (quaterniones(1) > -0.0001) 
+           quaterniones(1) = 0;
+        end
+        if (quaterniones(2) < 0.0001) && (quaterniones(2) > -0.0001) 
+            quaterniones(2) = 0;
+        end
+        if (quaterniones(3) < 0.0001) && (quaterniones(3) > -0.0001) 
+            quaterniones(3) = 0;
+        end
+        if (quaterniones(4) < 0.0001) && (quaterniones(4) > -0.0001) 
+            quaterniones(4) = 0;
+        end
+        set(q1Deseada_text,'string',quaterniones(1));
+        set(q2Deseada_text,'string',quaterniones(2));
+        set(q3Deseada_text,'string',quaterniones(3));
+        set(q4Deseada_text,'string',quaterniones(4));
+        posicionArticulaciones = getappdata(0,'ThetaOld');
+        actualizarTCP_PM(parametrosDH, posicionArticulaciones);
+
+        [vector, angulo] = quat2aVect(quaterniones);
+        set(vXDeseada_edit,'string',vector(1));
+        set(vYDeseada_edit,'string',vector(2));
+        set(vZDeseada_edit,'string',vector(3));
+        set(angDeseada_edit,'string',angulo*180/pi);
+     end
+%% función 
+    function euler_edit_button_press(h,dummy)
+        rX = str2double(get(eXDeseada_edit,'string'));
+        rY = str2double(get(eYDeseada_edit,'string'));
+        rZ = str2double(get(eZDeseada_edit,'string'));
+        rX = rX * pi / 180;
+        rY = rY * pi / 180;
+        rZ = rZ * pi / 180;
+        [R] = euler2rot(rX, rY, rZ);
+        quaterniones = rot2quat(R);
+        if (quaterniones(1) < 0.0001) && (quaterniones(1) > -0.0001) 
+           quaterniones(1) = 0;
+        end
+        if (quaterniones(2) < 0.0001) && (quaterniones(2) > -0.0001) 
+            quaterniones(2) = 0;
+        end
+        if (quaterniones(3) < 0.0001) && (quaterniones(3) > -0.0001) 
+            quaterniones(3) = 0;
+        end
+        if (quaterniones(4) < 0.0001) && (quaterniones(4) > -0.0001) 
+            quaterniones(4) = 0;
+        end
+        set(q1Deseada_text,'string',quaterniones(1));
+        set(q2Deseada_text,'string',quaterniones(2));
+        set(q3Deseada_text,'string',quaterniones(3));
+        set(q4Deseada_text,'string',quaterniones(4));
+
+        [vector, angulo] = quat2aVect(quaterniones);
+        set(vXDeseada_edit,'string',vector(1));
+        set(vYDeseada_edit,'string',vector(2));
+        set(vZDeseada_edit,'string',vector(3));
+        set(angDeseada_edit,'string',angulo*180/pi);
+        
+    end
+%%  funcion para copiar la orientacion Vector deseada igual que la actual
+     function ctrl_copiarVector_button_press(h,dummy)
+        vX = str2double(get(vXActual_text,'string'));
+        vY = str2double(get(vYActual_text,'string'));
+        vZ = str2double(get(vZActual_text,'string'));
+        angulo = str2double(get(angActual_text,'string'));
+        set(vXDeseada_edit,'string',vX);
+        set(vYDeseada_edit,'string',vY);
+        set(vZDeseada_edit,'string',vZ);
+        set(angDeseada_edit,'string',angulo);
+        
+        quaterniones = aVect2quat([vX vY vZ], angulo*pi/180);
+      
+        if (quaterniones(1) < 0.0001) && (quaterniones(1) > -0.0001) 
+           quaterniones(1) = 0;
+        end
+        if (quaterniones(2) < 0.0001) && (quaterniones(2) > -0.0001) 
+            quaterniones(2) = 0;
+        end
+        if (quaterniones(3) < 0.0001) && (quaterniones(3) > -0.0001) 
+            quaterniones(3) = 0;
+        end
+        if (quaterniones(4) < 0.0001) && (quaterniones(4) > -0.0001) 
+            quaterniones(4) = 0;
+        end
+        set(q1Deseada_text,'string',quaterniones(1));
+        set(q2Deseada_text,'string',quaterniones(2));
+        set(q3Deseada_text,'string',quaterniones(3));
+        set(q4Deseada_text,'string',quaterniones(4));
+        
+        R = quat2rot(quaterniones)
+        [eX, eY, eZ] = rot2euler(R)
+
+        set(eXDeseada_edit,'string',eX*180/pi);
+        set(eYDeseada_edit,'string',eY*180/pi);
+        set(eZDeseada_edit,'string',eZ*180/pi);
+        
+        posicionArticulaciones = getappdata(0,'ThetaOld');
+        actualizarTCP_PM(parametrosDH, posicionArticulaciones);
+
+      end
+%%  funcion para actualizar el quaternion y los angulos de Euler cuando se varia el vector del quatenion
+     function vAng_edit_button_press(h,dummy)
+        vX = str2double(get(vXDeseada_edit,'string'));
+        vY = str2double(get(vYDeseada_edit,'string'));
+        vZ = str2double(get(vZDeseada_edit,'string'));
+        angulo = str2double(get(angDeseada_edit,'string'));
+      
+        quaterniones = aVect2quat([vX vY vZ], angulo*pi/180);
+      
+        if (quaterniones(1) < 0.0001) && (quaterniones(1) > -0.0001) 
+           quaterniones(1) = 0;
+        end
+        if (quaterniones(2) < 0.0001) && (quaterniones(2) > -0.0001) 
+            quaterniones(2) = 0;
+        end
+        if (quaterniones(3) < 0.0001) && (quaterniones(3) > -0.0001) 
+            quaterniones(3) = 0;
+        end
+        if (quaterniones(4) < 0.0001) && (quaterniones(4) > -0.0001) 
+            quaterniones(4) = 0;
+        end
+        set(q1Deseada_text,'string',quaterniones(1));
+        set(q2Deseada_text,'string',quaterniones(2));
+        set(q3Deseada_text,'string',quaterniones(3));
+        set(q4Deseada_text,'string',quaterniones(4));
+        
+        R = quat2rot(quaterniones);
+        [eX, eY, eZ] = rot2euler(R);
+        set(eXDeseada_edit,'string',eX*180/pi);
+        set(eYDeseada_edit,'string',eY*180/pi);
+        set(eZDeseada_edit,'string',eZ*180/pi);
+        
+        posicionArticulaciones = getappdata(0,'ThetaOld');
+        actualizarTCP_PM(parametrosDH, posicionArticulaciones);
+     end
+%%  funcion para copiar la orientacion deseada igual que la actual
+     function copiarOrientacionDeseada()
+            q1 = str2double(get(q1Actual_text,'string'));
+            q2 = str2double(get(q2Actual_text,'string'));
+            q3 = str2double(get(q3Actual_text,'string'));
+            q4 = str2double(get(q4Actual_text,'string'));
+            set(q1Deseada_text,'string',q1);
+            set(q2Deseada_text,'string',q2);
+            set(q3Deseada_text,'string',q3);
+            set(q4Deseada_text,'string',q4);
+         
+     end
+%%  funcion para copiar el punto destino igual que la actual
+     function ctrl_copiarDestino_button_press(h,dummy)
+        x1=str2double(get(pActualX_text,'string'));
+        y1=str2double(get(pActualY_text,'string'));
+        z1=str2double(get(pActualZ_text,'string'));
+        
+        set(pDeseadaX_edit,'string',x1);
+        set(pDeseadaY_edit,'string',y1);
+        set(pDeseadaZ_edit,'string',z1);
+        posicionArticulaciones = getappdata(0,'ThetaOld');
+        actualizarTCP_PM(parametrosDH, posicionArticulaciones);
+     end
+%%  funcion para copiar el punto de paso igual que la actual
+     function ctrl_copiarPaso_button_press(h,dummy)
+        x1=str2double(get(pActualX_text,'string'));
+        y1=str2double(get(pActualY_text,'string'));
+        z1=str2double(get(pActualZ_text,'string'));
+        
+            set(pPasoX_edit,'string',x1);
+            set(pPasoY_edit,'string',y1);
+            set(pPasoZ_edit,'string',z1);
+         
+     end
+%% función botón Home: ir a la posición de origen del robot
+    function gohome()
+        % valores actuales de las articulaciones
+        posicionInicial = getappdata(0,'ThetaOld');
+        % valor final del movimiento
+        posicionFinal = [t1_home,t2_home,t3_home,t4_home,t5_home,t6_home];
+        posicionesArticulaciones = incrementoLinealArticulaciones(posicionInicial, posicionFinal, pasosMovimiento);
+        animacionRobot(posicionesArticulaciones);
+        
+   end
+%% función para cargar los datos del robot
+function loaddata
+
+        [linkdata]=load(robot,'s1','s2', 's3','s4','s5','s6','s7');
+
+        % como en los ficheros cad que mandan los fabricantes las piezas no estándibujadas en el origen(0,0,0) es necesario mover las piezas a esta
+        % posición antes de empezar. Utilizando los parametros dh en la posicion 0 de cada articulación y haciendo la transformada inversa, las piezas se
+        % referenciaran al origen 0,0,0
+                
+        % Inicialización: posición home
+        posicionActual = [t1_home, t2_home, t3_home, t4_home, t5_home, t6_home];
+        %[T_01, T_02, T_03, T_04, T_05, T_06] = calcularMT(parametrosDH, posicionActual);        
+        [T_01, T_02, T_03, T_04, T_05, T_06] = calcularMTsym(parametrosDH, t1_home, t2_home, t3_home, t4_home, t5_home, t6_home);        
+        
+        % Valores de los vértices de los elementos del robot
+        linkdata.s2.V2 = (inv(T_01)*linkdata.s2.V2')';
+        linkdata.s3.V3 = (inv(T_02)*linkdata.s3.V3')';
+        linkdata.s4.V4 = (inv(T_03)*linkdata.s4.V4')';
+        linkdata.s5.V5 = (inv(T_04)*linkdata.s5.V5')';
+        linkdata.s6.V6 = (inv(T_05)*linkdata.s6.V6')';
+        linkdata.s7.V7 = (inv(T_06)*linkdata.s7.V7')';
+
+
+        % Almacenar los datos de los elementos del robot en el área de almacenaje
+        setappdata(0,'Link1_data',linkdata.s1);
+        setappdata(0,'Link2_data',linkdata.s2);
+        setappdata(0,'Link3_data',linkdata.s3);
+        setappdata(0,'Link4_data',linkdata.s4);
+        setappdata(0,'Link5_data',linkdata.s5);
+        setappdata(0,'Link6_data',linkdata.s6);
+        setappdata(0,'Link7_data',linkdata.s7);
+
+end
+%% función para la animación del robot
+     function animacionRobot(posicionesArticulaciones)
+        % en cada fila de la matriz 'posicionesArticulaciones' está la
+        % posición de cada una de las articulaciones. Los pasos para hacer
+        % el movimiento dependerán del número de filas que tenga esta
+        % matriz
+        
+        for i = 2:1:size(posicionesArticulaciones,1);
+            
+            % se calculan las matrices de trasnformación para cada elemento
+            % a partir de la posición actual
+            %[T_01, T_02, T_03, T_04, T_05, T_06] = calcularMT(parametrosDH, posicionesArticulaciones(i,:));
+            posicionActual = posicionesArticulaciones(i,:);
+            [T_01, T_02, T_03, T_04, T_05, T_06] = calcularMTsym(parametrosDH, posicionActual(1), posicionActual(2), posicionActual(3), posicionActual(4), posicionActual(5), posicionActual(6));        
+        
+            % posición de cada elemento
+            s1 = getappdata(0,'Link1_data');
+            s2 = getappdata(0,'Link2_data');
+            s3 = getappdata(0,'Link3_data');
+            s4 = getappdata(0,'Link4_data');
+            s5 = getappdata(0,'Link5_data');
+            s6 = getappdata(0,'Link6_data');
+            s7 = getappdata(0,'Link7_data');
+
+            Link1 = s1.V1;
+            Link2 = (T_01*s2.V2')';
+            Link3 = (T_02*s3.V3')';
+            Link4 = (T_03*s4.V4')';
+            Link5 = (T_04*s5.V5')';
+            Link6 = (T_05*s6.V6')';
+            Link7 = (T_06*s7.V7')';
+
+            handles = getappdata(0,'patch_h');           %
+            L1 = handles(1);
+            L2 = handles(2);
+            L3 = handles(3);
+            L4 = handles(4);
+            L5 = handles(5);
+            L6 = handles(6);
+            L7 = handles(7);
+            Tr = handles(9);
+            
+            set(L1,'vertices',Link1(:,1:3),'facec', [0.717,0.116,0.123]);
+            set(L1, 'EdgeColor','none');
+            set(L2,'vertices',Link2(:,1:3),'facec', [0.216,1,.583]);
+            set(L2, 'EdgeColor','none');
+            set(L3,'vertices',Link3(:,1:3),'facec', [0.306,0.733,1]);
+            set(L3, 'EdgeColor','none');
+            set(L4,'vertices',Link4(:,1:3),'facec', [1,0.542,0.493]);
+            set(L4, 'EdgeColor','none');
+            set(L5,'vertices',Link5(:,1:3),'facec', [0.216,1,.583]);
+            set(L5, 'EdgeColor','none');
+            set(L6,'vertices',Link6(:,1:3),'facec', [1,1,0.255]);
+            set(L6, 'EdgeColor','none');
+            set(L7,'vertices',Link7(:,1:3),'facec', [0.306,0.733,1]);
+            set(L7, 'EdgeColor','none');
+
+
+            % actualización sliders y cajas de texto
+            theta1 = round((180/pi)*posicionesArticulaciones(i,1));
+            theta2 = round((180/pi)*posicionesArticulaciones(i,2));
+            theta3 = round((180/pi)*posicionesArticulaciones(i,3));
+            theta4 = round((180/pi)*posicionesArticulaciones(i,4));
+            theta5 = round((180/pi)*posicionesArticulaciones(i,5));
+            theta6 = round((180/pi)*posicionesArticulaciones(i,6));
+            set(t1_edit,'string',theta1); 
+            set(t1_slider,'Value',theta1);
+            set(t2_edit,'string',theta2);
+            set(t2_slider,'Value',theta2);
+            set(t3_edit,'string',theta3);
+            set(t3_slider,'Value',theta3);
+            set(t4_edit,'string',theta4); 
+            set(t4_slider,'Value',theta4);
+            set(t5_edit,'string',theta5); 
+            set(t5_slider,'Value',theta5);
+            set(t6_edit,'string',theta6); 
+            set(t6_slider,'Value',theta6);
+
+            % almacenar el rastro del extremo del robot 
+            value = get(checkbox2, 'Value');
+           
+            if value == 1
+                x_trail = getappdata(0,'xtrail');
+                y_trail = getappdata(0,'ytrail');
+                z_trail = getappdata(0,'ztrail');
+                 
+                xdata = [x_trail T_06(1,4)];
+                ydata = [y_trail T_06(2,4)];
+                zdata = [z_trail T_06(3,4)];
+                 
+                % utilizamos esto para seguir el rastro del robot
+                setappdata(0,'xtrail',xdata); 
+                setappdata(0,'ytrail',ydata); 
+                setappdata(0,'ztrail',zdata); 
+                set(Tr,'xdata',xdata,'ydata',ydata,'zdata',zdata);
+            end
+            
+            % se actualiza los strings del TCP del robot
+            actualizarTCP_PM(parametrosDH, posicionesArticulaciones(i,:));
+            
+            % dibujo los Ejes
+            ejes=[0 200,0 0;0 0 200 0;0 0 0 200;1 1 1 1];
+
+            if numeroEjes>=1
+                handles = getappdata(0,'ejes1_h');
+                ejeX = handles(1);
+                ejeY = handles(2);
+                ejeZ = handles(3);
+                ejeO = handles(4);
+                textoZ = handles(5);
+                textoX = handles(6);
+
+                ejesT=T_01*ejes;
+                set(ejeX,'xdata',[ejesT(1,1) ejesT(1,2)],'ydata',[ejesT(2,1) ejesT(2,2)],'zdata',[ejesT(3,1) ejesT(3,2)]);
+                set(ejeY,'xdata',[ejesT(1,1) ejesT(1,3)],'ydata',[ejesT(2,1) ejesT(2,3)],'zdata',[ejesT(3,1) ejesT(3,3)]);
+                set(ejeZ,'xdata',[ejesT(1,1) ejesT(1,4)],'ydata',[ejesT(2,1) ejesT(2,4)],'zdata',[ejesT(3,1) ejesT(3,4)]);
+                set(ejeO,'xdata',[ejesT(1,1)],'ydata',[ejesT(2,1)],'zdata',[ejesT(3,1)]);
+                set(textoZ,'position',[ejesT(1,4)-15,ejesT(2,4)-15,ejesT(3,4)-15]);
+                set(textoX,'position',[ejesT(1,2)-15,ejesT(2,2)-15,ejesT(3,2)-15]);
+                
+                orientacionTCP = T_01(1:3,1:3);
+            end
+
+            if numeroEjes>=2
+                handles = getappdata(0,'ejes2_h');
+                ejeX = handles(1);
+                ejeY = handles(2);
+                ejeZ = handles(3);
+                ejeO = handles(4);
+                textoZ = handles(5);
+                textoX = handles(6);
+
+                ejesT=T_02*ejes;
+                set(ejeX,'xdata',[ejesT(1,1) ejesT(1,2)],'ydata',[ejesT(2,1) ejesT(2,2)],'zdata',[ejesT(3,1) ejesT(3,2)]);
+                set(ejeY,'xdata',[ejesT(1,1) ejesT(1,3)],'ydata',[ejesT(2,1) ejesT(2,3)],'zdata',[ejesT(3,1) ejesT(3,3)]);
+                set(ejeZ,'xdata',[ejesT(1,1) ejesT(1,4)],'ydata',[ejesT(2,1) ejesT(2,4)],'zdata',[ejesT(3,1) ejesT(3,4)]);
+                set(ejeO,'xdata',[ejesT(1,1)],'ydata',[ejesT(2,1)],'zdata',[ejesT(3,1)]);
+                set(textoZ,'position',[ejesT(1,4)-15,ejesT(2,4)-15,ejesT(3,4)-15]);
+                set(textoX,'position',[ejesT(1,2)-15,ejesT(2,2)-15,ejesT(3,2)-15]);
+                
+                orientacionTCP = T_02(1:3,1:3);
+            end
+            
+            if numeroEjes>=3
+                handles = getappdata(0,'ejes3_h');
+                ejeX = handles(1);
+                ejeY = handles(2);
+                ejeZ = handles(3);
+                ejeO = handles(4);
+                textoZ = handles(5);
+                textoX = handles(6);
+
+                ejesT=T_03*ejes;
+                set(ejeX,'xdata',[ejesT(1,1) ejesT(1,2)],'ydata',[ejesT(2,1) ejesT(2,2)],'zdata',[ejesT(3,1) ejesT(3,2)]);
+                set(ejeY,'xdata',[ejesT(1,1) ejesT(1,3)],'ydata',[ejesT(2,1) ejesT(2,3)],'zdata',[ejesT(3,1) ejesT(3,3)]);
+                set(ejeZ,'xdata',[ejesT(1,1) ejesT(1,4)],'ydata',[ejesT(2,1) ejesT(2,4)],'zdata',[ejesT(3,1) ejesT(3,4)]);
+                set(ejeO,'xdata',[ejesT(1,1)],'ydata',[ejesT(2,1)],'zdata',[ejesT(3,1)]);
+                set(textoZ,'position',[ejesT(1,4)-15,ejesT(2,4)-15,ejesT(3,4)-15]);
+                set(textoX,'position',[ejesT(1,2)-15,ejesT(2,2)-15,ejesT(3,2)-15]);
+                
+                orientacionTCP = T_03(1:3,1:3);
+            end
+            
+            if numeroEjes>=4
+                handles = getappdata(0,'ejes4_h');
+                ejeX = handles(1);
+                ejeY = handles(2);
+                ejeZ = handles(3);
+                ejeO = handles(4);
+                textoZ = handles(5);
+                textoX = handles(6);
+
+                ejesT=T_04*ejes;
+                set(ejeX,'xdata',[ejesT(1,1) ejesT(1,2)],'ydata',[ejesT(2,1) ejesT(2,2)],'zdata',[ejesT(3,1) ejesT(3,2)]);
+                set(ejeY,'xdata',[ejesT(1,1) ejesT(1,3)],'ydata',[ejesT(2,1) ejesT(2,3)],'zdata',[ejesT(3,1) ejesT(3,3)]);
+                set(ejeZ,'xdata',[ejesT(1,1) ejesT(1,4)],'ydata',[ejesT(2,1) ejesT(2,4)],'zdata',[ejesT(3,1) ejesT(3,4)]);
+                set(ejeO,'xdata',[ejesT(1,1)],'ydata',[ejesT(2,1)],'zdata',[ejesT(3,1)]);
+                set(textoZ,'position',[ejesT(1,4)-15,ejesT(2,4)-15,ejesT(3,4)-15]);
+                set(textoX,'position',[ejesT(1,2)-15,ejesT(2,2)-15,ejesT(3,2)-15]);
+                
+                orientacionTCP = T_04(1:3,1:3);
+            end
+            
+            
+            if numeroEjes>=5
+                handles = getappdata(0,'ejes5_h');
+                ejeX = handles(1);
+                ejeY = handles(2);
+                ejeZ = handles(3);
+                ejeO = handles(4);
+                textoZ = handles(5);
+                textoX = handles(6);
+
+                ejesT=T_05*ejes;
+                set(ejeX,'xdata',[ejesT(1,1) ejesT(1,2)],'ydata',[ejesT(2,1) ejesT(2,2)],'zdata',[ejesT(3,1) ejesT(3,2)]);
+                set(ejeY,'xdata',[ejesT(1,1) ejesT(1,3)],'ydata',[ejesT(2,1) ejesT(2,3)],'zdata',[ejesT(3,1) ejesT(3,3)]);
+                set(ejeZ,'xdata',[ejesT(1,1) ejesT(1,4)],'ydata',[ejesT(2,1) ejesT(2,4)],'zdata',[ejesT(3,1) ejesT(3,4)]);
+                set(ejeO,'xdata',[ejesT(1,1)],'ydata',[ejesT(2,1)],'zdata',[ejesT(3,1)]);
+                set(textoZ,'position',[ejesT(1,4)-15,ejesT(2,4)-15,ejesT(3,4)-15]);
+                set(textoX,'position',[ejesT(1,2)-15,ejesT(2,2)-15,ejesT(3,2)-15]);
+                
+                orientacionTCP = T_05(1:3,1:3);
+            end
+            
+            if numeroEjes>=6
+                handles = getappdata(0,'ejes6_h');
+                ejeX = handles(1);
+                ejeY = handles(2);
+                ejeZ = handles(3);
+                ejeO = handles(4);
+                textoZ = handles(5);
+                textoX = handles(6);
+
+                ejesT=T_06*ejes;
+                set(ejeX,'xdata',[ejesT(1,1) ejesT(1,2)],'ydata',[ejesT(2,1) ejesT(2,2)],'zdata',[ejesT(3,1) ejesT(3,2)]);
+                set(ejeY,'xdata',[ejesT(1,1) ejesT(1,3)],'ydata',[ejesT(2,1) ejesT(2,3)],'zdata',[ejesT(3,1) ejesT(3,3)]);
+                set(ejeZ,'xdata',[ejesT(1,1) ejesT(1,4)],'ydata',[ejesT(2,1) ejesT(2,4)],'zdata',[ejesT(3,1) ejesT(3,4)]);
+                set(ejeO,'xdata',[ejesT(1,1)],'ydata',[ejesT(2,1)],'zdata',[ejesT(3,1)]);
+                set(textoZ,'position',[ejesT(1,4)-15,ejesT(2,4)-15,ejesT(3,4)-15]);
+                set(textoX,'position',[ejesT(1,2)-15,ejesT(2,2)-15,ejesT(3,2)-15]);
+                
+                orientacionTCP = T_06(1:3,1:3);
+            end
+            
+            handles = getappdata(0,'vectorQuaternion_h');
+            vectorQuaternion = handles(1);
+            q = rot2quat(orientacionTCP);
+            [vector, angulo] = quat2aVect(q);
+            set(vectorQuaternion,'xdata',[0 vector(1)*300],'ydata',[0 vector(2)*300],'zdata',[0 vector(3)*300]);
+
+            drawnow
+        end
+        setappdata(0,'ThetaOld',posicionesArticulaciones(i,:)); 
+     end
+%%  funcion para actualizar los strings de la posicion actual del TCP del robot
+     function actualizarTCP_PM(parametrosDH, posicionActual)
+            [posicionTCP, orientacionTCP, puntoMuneca] = calcularLocalizacionTCP_PMsym(parametrosDH, posicionActual(1), posicionActual(2), posicionActual(3), posicionActual(4), posicionActual(5), posicionActual(6), longitudUltimoEslabon);
+            if (posicionTCP(1) < 0.001) && (posicionTCP(1) > -0.001) 
+                posicionTCP(1)= 0;
+            end
+            if (posicionTCP(2) < 0.001) && (posicionTCP(2) > -0.001) 
+                posicionTCP(2)= 0;
+            end
+            if (posicionTCP(3) < 0.001) && (posicionTCP(3) > -0.001)  
+                posicionTCP(3)= 0;
+            end
+            set(pActualX_text,'string',posicionTCP(1));
+            set(pActualY_text,'string',posicionTCP(2));
+            set(pActualZ_text,'string',posicionTCP(3));
+            
+            quaterniones = rot2quat(orientacionTCP);
+            if (quaterniones(1) < 0.0001) && (quaterniones(1) > -0.0001) 
+                quaterniones(1) = 0;
+            end
+            if (quaterniones(2) < 0.0001) && (quaterniones(2) > -0.0001) 
+                quaterniones(2) = 0;
+            end
+            if (quaterniones(3) < 0.0001) && (quaterniones(3) > -0.0001) 
+                quaterniones(3) = 0;
+            end
+            if (quaterniones(4) < 0.0001) && (quaterniones(4) > -0.0001) 
+                quaterniones(4) = 0;
+            end
+            set(q1Actual_text,'string',quaterniones(1));
+            set(q2Actual_text,'string',quaterniones(2));
+            set(q3Actual_text,'string',quaterniones(3));
+            set(q4Actual_text,'string',quaterniones(4));
+            
+            [eulerX, eulerY, eulerZ] = rot2euler(orientacionTCP);
+            if (eulerX < 0.0001) && (eulerX > -0.0001) 
+                eulerX = 0;
+            end
+            if (eulerY < 0.0001) && (eulerY > -0.0001) 
+                eulerY = 0;
+            end
+            if (eulerZ < 0.0001) && (eulerZ > -0.0001) 
+                eulerZ = 0;
+            end
+            set(eXActual_text,'string',eulerX*180/pi);
+            set(eYActual_text,'string',eulerY*180/pi);
+            set(eZActual_text,'string',eulerZ*180/pi);
+            
+            %Se actualiza el punto de muñeca
+            if (puntoMuneca(1) < 0.001) && (puntoMuneca(1) > -0.001) 
+                puntoMuneca(1)= 0;
+            end
+            if (puntoMuneca(2) < 0.001) && (puntoMuneca(2) > -0.001) 
+                puntoMuneca(2)= 0;
+            end
+            if (puntoMuneca(3) < 0.001) && (puntoMuneca(3) > -0.001)  
+                puntoMuneca(3)= 0;
+            end
+            set(pMunecaActualX_text,'string',puntoMuneca(1));
+            set(pMunecaActualY_text,'string',puntoMuneca(2));
+            set(pMunecaActualZ_text,'string',puntoMuneca(3));
+
+            x = str2double(get(pDeseadaX_edit,'string'));
+            y = str2double(get(pDeseadaY_edit,'string'));
+            z = str2double(get(pDeseadaZ_edit,'string'));
+
+            q1 = str2double(get(q1Deseada_text,'string'));
+            q2 = str2double(get(q2Deseada_text,'string'));
+            q3 = str2double(get(q3Deseada_text,'string'));
+            q4 = str2double(get(q4Deseada_text,'string'));
+        
+            posicionDeseada = [x; y; z];
+            orientacionDeseada = [q1 q2 q3 q4];
+
+            R = quat2rot(orientacionDeseada);
+            puntoMunecaDeseada = calcularPM (posicionDeseada, R, longitudUltimoEslabon);
+            if (puntoMunecaDeseada(1) < 0.001) && (puntoMunecaDeseada(1) > -0.001) 
+                puntoMunecaDeseada(1)= 0;
+            end
+            if (puntoMunecaDeseada(2) < 0.001) && (puntoMunecaDeseada(2) > -0.001) 
+                puntoMunecaDeseada(2)= 0;
+            end
+            if (puntoMunecaDeseada(3) < 0.001) && (puntoMunecaDeseada(3) > -0.001)  
+                puntoMunecaDeseada(3)= 0;
+            end
+            set(pMunecaDeseadoX_text,'string',puntoMunecaDeseada(1));
+            set(pMunecaDeseadoY_text,'string',puntoMunecaDeseada(2));
+            set(pMunecaDeseadoZ_text,'string',puntoMunecaDeseada(3));
+            
+            [vector, angulo] = quat2aVect(quaterniones);
+            set(vXActual_text,'string',vector(1));
+            set(vYActual_text,'string',vector(2));
+            set(vZActual_text,'string',vector(3));
+            set(angActual_text,'string',angulo*180/pi);
+     end
+
+%% función para la inicialización de la gui y llevar al robot a la posición de Home 
+     function InitHome
+        % Incialización de los datos de la figura: creamos una nueva en el gui
+        set(0,'Units','pixels')
+        dim = get(0,'ScreenSize');
+        fig_1 = figure('doublebuffer','on','Position',[0,35,dim(3)-200,dim(4)-110],...
+            'MenuBar','none','Name',' Simulación de Robots Industriales','ToolBar','Figure',...
+            'NumberTitle','off','CloseRequestFcn',@del_app,'WindowState', 'maximized');
+        pause (0.01);
+        % frame_h=get(handle(gcf),'JavaFrame');
+        % set(frame_h, 'Maximized',1);
+        hold on;
+        grid on;
+        light              % añadimos la luz por defecto
+        daspect([1 1 1])   % fijado el ratio del aspecto
+        view(135,25)
+        xlabel('X'),ylabel('Y'),zlabel('Z');
+        title(robot);
+        title('Simulador cinemática de robots');
+        axis([-dimensionesEntorno dimensionesEntorno -dimensionesEntorno dimensionesEntorno -dimensionesEntorno/2 dimensionesEntorno+200]);
+        
+        % dibujamos algunos ejes para enmarcar mejor la ventana del robot
+        plot3([-dimensionesEntorno,dimensionesEntorno],[-dimensionesEntorno,-dimensionesEntorno],[-dimensionesEntorno/2,-dimensionesEntorno/2],'k');
+        plot3([-dimensionesEntorno,-dimensionesEntorno],[-dimensionesEntorno,dimensionesEntorno],[-dimensionesEntorno/2,-dimensionesEntorno/2],'k');
+        plot3([-dimensionesEntorno,-dimensionesEntorno],[-dimensionesEntorno,-dimensionesEntorno],[-dimensionesEntorno/2,dimensionesEntorno+200],'k');
+        plot3([-dimensionesEntorno,-dimensionesEntorno],[dimensionesEntorno,dimensionesEntorno],[-dimensionesEntorno/2,dimensionesEntorno+200],'k');
+        plot3([-dimensionesEntorno,dimensionesEntorno],[-dimensionesEntorno,-dimensionesEntorno],[dimensionesEntorno+200,dimensionesEntorno+200],'k');
+        plot3([-dimensionesEntorno,-dimensionesEntorno],[-dimensionesEntorno,dimensionesEntorno],[dimensionesEntorno+200,dimensionesEntorno+200],'k');
+
+        % se pone un suelo
+        x = -dimensionesEntorno:dimensionesEntorno/2:dimensionesEntorno;
+        y = -dimensionesEntorno:dimensionesEntorno/2:dimensionesEntorno;
+        [x, y] = meshgrid(x,y);
+        z = zeros(size(x));
+        surf(x,y,z,'facealpha',0.1,'linestyle',':')
+
+        s1 = getappdata(0,'Link1_data');
+        s2 = getappdata(0,'Link2_data');
+        s3 = getappdata(0,'Link3_data');
+        s4 = getappdata(0,'Link4_data');
+        s5 = getappdata(0,'Link5_data');
+        s6 = getappdata(0,'Link6_data');
+        s7 = getappdata(0,'Link7_data');
+
+        posicionActual = [t1_home, t2_home, t3_home, t4_home, t5_home, t5_home];
+        %[T_01, T_02, T_03, T_04, T_05, T_06] = calcularMT(parametrosDH, posicionActual);        
+        [T_01, T_02, T_03, T_04, T_05, T_06] = calcularMTsym(parametrosDH, t1_home, t2_home, t3_home, t4_home, t5_home, t6_home);        
+        
+        
+        % obtener los vértices de los elementos del robot
+        Link1 = s1.V1;
+        Link2 = (T_01*s2.V2')';
+        Link3 = (T_02*s3.V3')';
+        Link4 = (T_03*s4.V4')';
+        Link5 = (T_04*s5.V5')';
+        Link6 = (T_05*s6.V6')';
+        Link7 = (T_06*s7.V7')';
+        
+        L1 = patch('faces', s1.F1, 'vertices' ,Link1(:,1:3));
+        L2 = patch('faces', s2.F2, 'vertices' ,Link2(:,1:3));
+        L3 = patch('faces', s3.F3, 'vertices' ,Link3(:,1:3));
+        L4 = patch('faces', s4.F4, 'vertices' ,Link4(:,1:3));
+        L5 = patch('faces', s5.F5, 'vertices' ,Link5(:,1:3));
+        L6 = patch('faces', s6.F6, 'vertices' ,Link6(:,1:3));
+        L7 = patch('faces', s7.F7, 'vertices' ,Link7(:,1:3));
+        
+        % rastro del extremos del robot
+        Tr = plot3(0,0,0,'b.'); 
+        A1=1;
+        setappdata(0,'patch_h',[L1,L2,L3,L4,L5,L6,L7,A1,Tr])
+        setappdata(0,'xtrail',0); % used for trail tracking.
+        setappdata(0,'ytrail',0); % used for trail tracking.
+        setappdata(0,'ztrail',0); % used for trail tracking.
+        
+        % control para la transparencia del robot
+        transparente=1;
+        set(L1, 'facec', [0.717,0.116,0.123]);
+        set(L1, 'EdgeColor','none');
+        set(L1, 'FaceAlpha',transparente);
+        set(L2, 'facec', [0.216,1,.583]);
+        set(L2, 'EdgeColor','none');
+        set(L2, 'FaceAlpha',transparente);
+        set(L3, 'facec', [0.306,0.733,1]);
+        set(L3, 'EdgeColor','none');
+        set(L3, 'FaceAlpha',transparente);
+        set(L4, 'facec', [1,0.542,0.493]);
+        set(L4, 'EdgeColor','none');
+        set(L4, 'FaceAlpha',transparente);
+        set(L5, 'facec', [0.216,1,.583]);
+        set(L5, 'EdgeColor','none');
+        set(L5, 'FaceAlpha',transparente);
+        set(L6, 'facec', [1,1,0.255]);
+        set(L6, 'EdgeColor','none');
+        set(L6, 'FaceAlpha',transparente);
+        set(L7, 'facec', [0.306,0.733,1]);
+        set(L7, 'EdgeColor','none');
+        set(L7, 'FaceAlpha',transparente);
+
+        setappdata(0,'ThetaOld',[t1_home,t2_home,t3_home,t4_home,t5_home,t6_home]); 
+
+        % TCP del robot
+        [posicionTCP, orientacionTCP] = calcularLocalizacionTCP_PMsym(parametrosDH, t1_home, t2_home, t3_home, t4_home, t5_home, t6_home,longitudUltimoEslabon);
+ 
+        % dibujo de los ejes del robot
+        value='Off';
+        grosorEjes=2;
+        ejes=[0 200,0 0;0 0 200 0;0 0 0 200;1 1 1 1];
+            
+        ejesT=ejes;
+        ejeX0 = plot3([ejesT(1,1) ejesT(1,2)],[ejesT(2,1) ejesT(2,2)],[ejesT(3,1) ejesT(3,2)],'r');
+        ejeY0 = plot3([ejesT(1,1) ejesT(1,3)],[ejesT(2,1) ejesT(2,3)],[ejesT(3,1) ejesT(3,3)],'g');
+        ejeZ0 = plot3([ejesT(1,1) ejesT(1,4)],[ejesT(2,1) ejesT(2,4)],[ejesT(3,1) ejesT(3,4)],'b');
+        ejeO0 = plot3(ejesT(1,1),ejesT(2,1),ejesT(3,1),'k.');
+        textoZ0 = text(ejesT(1,4)-15,ejesT(2,4)-15,ejesT(3,4)-15,'Z_0');
+        textoX0 = text(ejesT(1,2)-15,ejesT(2,2)-15,ejesT(3,2)-15,'X_0');
+        set(ejeX0,'Visible',value);
+        set(ejeY0,'Visible',value);
+        set(ejeZ0,'Visible',value);
+        set(ejeO0,'Visible',value);
+        set(textoZ0,'Visible',value);
+        set(textoX0,'Visible',value);
+        set(ejeX0,'LineWidth',grosorEjes);
+        set(ejeY0,'LineWidth',grosorEjes);
+        set(ejeZ0,'LineWidth',grosorEjes);
+        setappdata(0,'ejes0_h',[ejeX0,ejeY0,ejeZ0,ejeO0,textoZ0,textoX0]);
+
+        if numeroEjes>=1
+            ejesT=T_01*ejes;
+            ejeX1 = plot3([ejesT(1,1) ejesT(1,2)],[ejesT(2,1) ejesT(2,2)],[ejesT(3,1) ejesT(3,2)],'r');
+            ejeY1 = plot3([ejesT(1,1) ejesT(1,3)],[ejesT(2,1) ejesT(2,3)],[ejesT(3,1) ejesT(3,3)],'g');
+            ejeZ1 = plot3([ejesT(1,1) ejesT(1,4)],[ejesT(2,1) ejesT(2,4)],[ejesT(3,1) ejesT(3,4)],'b');
+            ejeO1 = plot3(ejesT(1,1),ejesT(2,1),ejesT(3,1),'k.');
+            textoZ1 = text(ejesT(1,4)-15,ejesT(2,4)-15,ejesT(3,4)-15,'Z_1');
+            textoX1 = text(ejesT(1,2)-15,ejesT(2,2)-15,ejesT(3,2)-15,'X_1');
+            set(ejeX1,'Visible',value);
+            set(ejeY1,'Visible',value);
+            set(ejeZ1,'Visible',value);
+            set(ejeO1,'Visible',value);
+            set(textoZ1,'Visible',value);
+            set(textoX1,'Visible',value);
+            set(ejeX1,'LineWidth',grosorEjes);
+            set(ejeY1,'LineWidth',grosorEjes);
+            set(ejeZ1,'LineWidth',grosorEjes);
+            setappdata(0,'ejes1_h',[ejeX1,ejeY1,ejeZ1,ejeO1,textoZ1,textoX1]);
+        end
+        
+        if numeroEjes>=2
+            ejesT=T_02*ejes;
+            ejeX2 = plot3([ejesT(1,1) ejesT(1,2)],[ejesT(2,1) ejesT(2,2)],[ejesT(3,1) ejesT(3,2)],'r');
+            ejeY2 = plot3([ejesT(1,1) ejesT(1,3)],[ejesT(2,1) ejesT(2,3)],[ejesT(3,1) ejesT(3,3)],'g');
+            ejeZ2 = plot3([ejesT(1,1) ejesT(1,4)],[ejesT(2,1) ejesT(2,4)],[ejesT(3,1) ejesT(3,4)],'b');
+            ejeO2 = plot3(ejesT(1,1),ejesT(2,1),ejesT(3,1),'k.');
+            textoZ2 = text(ejesT(1,4)-15,ejesT(2,4)-15,ejesT(3,4)-15,'Z_2');
+            textoX2 = text(ejesT(1,2)-15,ejesT(2,2)-15,ejesT(3,2)-15,'X_2');
+            set(ejeX2,'Visible',value);
+            set(ejeY2,'Visible',value);
+            set(ejeZ2,'Visible',value);
+            set(ejeO2,'Visible',value);
+            set(textoZ2,'Visible',value);
+            set(textoX2,'Visible',value);
+            set(ejeX2,'LineWidth',grosorEjes);
+            set(ejeY2,'LineWidth',grosorEjes);
+            set(ejeZ2,'LineWidth',grosorEjes);
+            setappdata(0,'ejes2_h',[ejeX2,ejeY2,ejeZ2,ejeO2,textoZ2,textoX2]);
+        end
+
+        if numeroEjes>=3
+            ejesT=T_03*ejes;
+            ejeX3 = plot3([ejesT(1,1) ejesT(1,2)],[ejesT(2,1) ejesT(2,2)],[ejesT(3,1) ejesT(3,2)],'r');
+            ejeY3 = plot3([ejesT(1,1) ejesT(1,3)],[ejesT(2,1) ejesT(2,3)],[ejesT(3,1) ejesT(3,3)],'g');
+            ejeZ3 = plot3([ejesT(1,1) ejesT(1,4)],[ejesT(2,1) ejesT(2,4)],[ejesT(3,1) ejesT(3,4)],'b');
+            ejeO3 = plot3(ejesT(1,1),ejesT(2,1),ejesT(3,1),'k.');
+            textoZ3 = text(ejesT(1,4)-15,ejesT(2,4)-15,ejesT(3,4)-15,'Z_3');
+            textoX3 = text(ejesT(1,2)-15,ejesT(2,2)-15,ejesT(3,2)-15,'X_3');
+            set(ejeX3,'Visible',value);
+            set(ejeY3,'Visible',value);
+            set(ejeZ3,'Visible',value);
+            set(ejeO3,'Visible',value);
+            set(textoZ3,'Visible',value);
+            set(textoX3,'Visible',value);
+            set(ejeX3,'LineWidth',grosorEjes);
+            set(ejeY3,'LineWidth',grosorEjes);
+            set(ejeZ3,'LineWidth',grosorEjes);
+            setappdata(0,'ejes3_h',[ejeX3,ejeY3,ejeZ3,ejeO3,textoZ3,textoX3]);
+        end
+        
+        if numeroEjes>=4
+            ejesT=T_04*ejes;
+            ejeX4 = plot3([ejesT(1,1) ejesT(1,2)],[ejesT(2,1) ejesT(2,2)],[ejesT(3,1) ejesT(3,2)],'r');
+            ejeY4 = plot3([ejesT(1,1) ejesT(1,3)],[ejesT(2,1) ejesT(2,3)],[ejesT(3,1) ejesT(3,3)],'g');
+            ejeZ4 = plot3([ejesT(1,1) ejesT(1,4)],[ejesT(2,1) ejesT(2,4)],[ejesT(3,1) ejesT(3,4)],'b');
+            ejeO4 = plot3(ejesT(1,1),ejesT(2,1),ejesT(3,1),'k.');
+            textoZ4 = text(ejesT(1,4)-15,ejesT(2,4)-15,ejesT(3,4)-15,'Z_4');
+            textoX4 = text(ejesT(1,2)-15,ejesT(2,2)-15,ejesT(3,2)-15,'X_4');
+            set(ejeX4,'Visible',value);
+            set(ejeY4,'Visible',value);
+            set(ejeZ4,'Visible',value);
+            set(ejeO4,'Visible',value);
+            set(textoZ4,'Visible',value);
+            set(textoX4,'Visible',value);
+            set(ejeX4,'LineWidth',grosorEjes);
+            set(ejeY4,'LineWidth',grosorEjes);
+            set(ejeZ4,'LineWidth',grosorEjes);
+            setappdata(0,'ejes4_h',[ejeX4,ejeY4,ejeZ4,ejeO4,textoZ4,textoX4]);
+        end
+        
+        if numeroEjes>=5
+            ejesT=T_05*ejes;
+            ejeX5 = plot3([ejesT(1,1) ejesT(1,2)],[ejesT(2,1) ejesT(2,2)],[ejesT(3,1) ejesT(3,2)],'r');
+            ejeY5 = plot3([ejesT(1,1) ejesT(1,3)],[ejesT(2,1) ejesT(2,3)],[ejesT(3,1) ejesT(3,3)],'g');
+            ejeZ5 = plot3([ejesT(1,1) ejesT(1,4)],[ejesT(2,1) ejesT(2,4)],[ejesT(3,1) ejesT(3,4)],'b');
+            ejeO5 = plot3(ejesT(1,1),ejesT(2,1),ejesT(3,1),'k.');
+            textoZ5 = text(ejesT(1,4)-15,ejesT(2,4)-15,ejesT(3,4)-15,'Z_5');
+            textoX5 = text(ejesT(1,2)-15,ejesT(2,2)-15,ejesT(3,2)-15,'X_5');
+            set(ejeX5,'Visible',value);
+            set(ejeY5,'Visible',value);
+            set(ejeZ5,'Visible',value);
+            set(ejeO5,'Visible',value);
+            set(textoZ5,'Visible',value);
+            set(textoX5,'Visible',value);
+            set(ejeX5,'LineWidth',grosorEjes);
+            set(ejeY5,'LineWidth',grosorEjes);
+            set(ejeZ5,'LineWidth',grosorEjes);
+            setappdata(0,'ejes5_h',[ejeX5,ejeY5,ejeZ5,ejeO5,textoZ5,textoX5]);
+        end
+        
+        if numeroEjes>=6
+            ejesT=T_06*ejes;
+            ejeX6 = plot3([ejesT(1,1) ejesT(1,2)],[ejesT(2,1) ejesT(2,2)],[ejesT(3,1) ejesT(3,2)],'r');
+            ejeY6 = plot3([ejesT(1,1) ejesT(1,3)],[ejesT(2,1) ejesT(2,3)],[ejesT(3,1) ejesT(3,3)],'g');
+            ejeZ6 = plot3([ejesT(1,1) ejesT(1,4)],[ejesT(2,1) ejesT(2,4)],[ejesT(3,1) ejesT(3,4)],'b');
+            ejeO6 = plot3(ejesT(1,1),ejesT(2,1),ejesT(3,1),'k.');
+            textoZ6 = text(ejesT(1,4)-15,ejesT(2,4)-15,ejesT(3,4)-15,'Z_6');
+            textoX6 = text(ejesT(1,2)-15,ejesT(2,2)-15,ejesT(3,2)-15,'X_6');
+            set(ejeX6,'Visible',value);
+            set(ejeY6,'Visible',value);
+            set(ejeZ6,'Visible',value);
+            set(ejeO6,'Visible',value);
+            set(textoZ6,'Visible',value);
+            set(textoX6,'Visible',value);
+            set(ejeX6,'LineWidth',grosorEjes);
+            set(ejeY6,'LineWidth',grosorEjes);
+            set(ejeZ6,'LineWidth',grosorEjes);
+            setappdata(0,'ejes6_h',[ejeX6,ejeY6,ejeZ6,ejeO6,textoZ6,textoX6]);
+        end
+        
+        % Dibujo el vector del quatenion
+        q = rot2quat(orientacionTCP);
+        [vector, angulo] = quat2aVect(q);
+        vectorQuaternion = plot3([0 vector(1)*300],[0 vector(2)*300],[0 vector(3)*300],'m');
+        set(vectorQuaternion,'Visible',value);
+        set(vectorQuaternion,'LineWidth',grosorEjes);
+        setappdata(0,'vectorQuaternion_h',[vectorQuaternion]);
+        
+     end
+ %% función para cerrar la ventana del robot y borrado de todos los datos
+     function del_app(varargin)
+        rmappdata(0,'Link1_data');
+        rmappdata(0,'Link2_data');
+        rmappdata(0,'Link3_data');
+        rmappdata(0,'Link4_data');
+        rmappdata(0,'Link5_data');
+        rmappdata(0,'Link6_data');
+        rmappdata(0,'Link7_data');
+        rmappdata(0,'ThetaOld');
+        rmappdata(0,'patch_h');
+        rmappdata(0,'xtrail');
+        rmappdata(0,'ytrail');
+        rmappdata(0,'ztrail');
+        delete(fig_1);
+     end
+        
+ %% función para los botones de pulsado
+     function [hout,ax_out] = uibutton(varargin)
+ 
+        % detección si el 1º argumento es un manejador de un uicontrol
+        keep_handle = false;
+        if nargin > 0
+            h = varargin{1};
+            if isscalar(h) && ishandle(h) && strcmp(get(h,'Type'),'uicontrol')
+                keep_handle = true;
+                varargin(1) = [];
+            end
+        end
+
+        % argumento del parser: se busca la propiedad 'Interpreter' property
+        interp_value = get(0,'DefaultTextInterpreter');
+        arg = 1;
+        remove = [];
+        while arg <= length(varargin)
+            v = varargin{arg};
+            if isstruct(v)
+                fn = fieldnames(v);
+                for i = 1:length(fn)
+                    if strncmpi(fn{i},'interpreter',length(fn{i}))
+                        interp_value = v.(fn{i});
+                        v = rmfield(v,fn{i});
+                    end
+                end
+                varargin{arg} = v;
+                arg = arg + 1;
+            elseif ischar(v)
+                if strncmpi(v,'interpreter',length(v))
+                    interp_value = varargin{arg+1};
+                    remove = [remove,arg,arg+1];
+                end
+                arg = arg + 2;
+            elseif arg == 1 && isscalar(v) && ishandle(v) && ...
+                    any(strcmp(get(h,'Type'),{'figure','uipanel'}))
+                arg = arg + 1;
+            else
+                error('Invalid property or uicontrol parent.')
+            end
+        end
+        varargin(remove) = [];
+
+        % creación del uicontrol y obtención de sus propiedades
+        if keep_handle
+            set(h,varargin{:})
+        else
+            h = uicontrol(varargin{:});
+        end
+        s = get(h);
+        if ~any(strcmp(s.Style,{'pushbutton','togglebutton','text'}))
+            delete(h)
+            error('''Style'' must be pushbutton, togglebutton or text.')
+        end
+        set(h,'Visible','off')
+
+        % creación de los ejes
+        parent = get(h,'Parent');
+        ax = axes('Parent',parent,'Units',s.Units,'Position',s.Position,'XTick',[],'YTick',[],'XColor',s.BackgroundColor,'YColor',s.BackgroundColor,'Box','on','Color',s.BackgroundColor);
+        
+        % ajuste del tamaño de los ejes para mejorar la apariencia
+        set(ax,'Units','pixels')
+        pos = round(get(ax,'Position'));
+        if strcmp(s.Style,'text')
+            set(ax,'Position',pos + [0 1 -1 -1])
+        else
+            set(ax,'Position',pos + [4 4 -8 -8])
+        end
+        switch s.HorizontalAlignment
+            case 'left'
+                x = 0.0;
+            case 'center'
+                x = 0.5;
+            case 'right'
+                x = 1;
+        end
+        
+        % creación del objeto texto
+        text_obj = text('Parent',ax,'Position',[x,0.5],'String',s.String,'Interpreter',interp_value,'HorizontalAlignment',s.HorizontalAlignment,'VerticalAlignment','middle','FontName',s.FontName,'FontSize',s.FontSize,'FontAngle',s.FontAngle,'FontWeight',s.FontWeight,'Color',s.ForegroundColor);
+
+        if strcmp(s.Style,'text')
+            delete(h)
+            if nargout
+                hout = text_obj;
+                ax_out = ax;
+            end
+            return
+        end
+
+        % captura de la imagen de los ejes y se borran
+        frame = getframe(ax);
+        delete(ax)
+
+        % creación de la imagen RGB
+        if isempty(frame.colormap)
+            rgb = frame.cdata;
+        else
+            rgb = reshape(frame.colormap(frame.cdata,:),[pos([4,3]),3]);
+        end
+        size_rgb = size(rgb);
+        rgb = double(rgb)/255;
+        back = repmat(permute(s.BackgroundColor,[1 3 2]),size_rgb(1:2));
+        isback = all(rgb == back,3);
+        rgb(repmat(isback,[1 1 3])) = NaN;
+        set(h,'CData',rgb,'String','','Visible',s.Visible)
+
+        if nargout
+            hout = h;
+        end
+     end
+ 
+end

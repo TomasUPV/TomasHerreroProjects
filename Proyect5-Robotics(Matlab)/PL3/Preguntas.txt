@@ -1,0 +1,194 @@
+================================================================================
+PRÁCTICA 3 - CINEMÁTICA DIFERENCIAL
+RESPUESTAS 
+================================================================================
+
+================================================================================
+EJERCICIO 1 - ROBOT ABB (línea 6 activa en main.m)
+================================================================================
+
+Para la configuración "Home" con q=0:
+
+--------------------------------------------------------------------------------
+1. ¿Cómo varía la coordenada X (posición) en función del movimiento de cada 
+   articulación? Justifica la respuesta.
+--------------------------------------------------------------------------------
+
+Para el robot ABB en configuración home:
+
+- q1 (rotación base): No afecta significativamente a X en home. La rotación 
+  de la base es perpendicular al eje X cuando el robot está alineado, por lo 
+  que el movimiento del TCP es principalmente tangencial en la dirección Y.
+
+- q2 (hombro): SÍ afecta a X. Al rotar el segundo eslabón (hombro), se 
+  modifica la proyección del brazo en el plano XY, cambiando la coordenada X 
+  del TCP.
+
+- q3 (codo): SÍ afecta a X. Similar a q2, la rotación del codo modifica la 
+  extensión del brazo en dirección X.
+
+- q4, q5, q6 (muñeca): No afectan significativamente a X. Estas articulaciones 
+  de la muñeca principalmente cambian la orientación del TCP, no su posición 
+  (o la afectan mínimamente por la pequeña distancia entre el punto de muñeca 
+  y el TCP).
+
+JUSTIFICACIÓN: La primera fila de la Jacobiana (vx) mostrará valores no nulos 
+principalmente en las columnas correspondientes a q2 y q3, y posiblemente 
+pequeños valores en q1 dependiendo de la geometría exacta del robot.
+
+--------------------------------------------------------------------------------
+2. ¿Cómo varía la coordenada Z (posición) en función del movimiento de cada 
+   articulación? Justifica la respuesta.
+--------------------------------------------------------------------------------
+
+- q1: NO afecta a Z. La primera articulación es una rotación alrededor del 
+  eje Z vertical, por lo que no produce movimiento vertical del TCP.
+
+- q2: SÍ afecta a Z. Al elevar o bajar el brazo mediante la rotación del 
+  hombro, el TCP se mueve verticalmente.
+
+- q3: SÍ afecta a Z. La rotación del codo también contribuye al movimiento 
+  vertical del TCP.
+
+- q4, q5, q6: NO afectan significativamente a Z. Son articulaciones de 
+  orientación de la muñeca.
+
+JUSTIFICACIÓN: La tercera fila de la Jacobiana (vz) tendrá valores no nulos 
+principalmente en las columnas q2 y q3. La columna q1 será cero o muy pequeña.
+
+--------------------------------------------------------------------------------
+3. ¿Con qué eje coinciden los vectores de velocidad angular con respecto a la 
+   variación de posición de cada articulación? Razona la respuesta.
+--------------------------------------------------------------------------------
+
+Para el robot ABB (6 ejes, todas articulaciones de revolución):
+
+- q1: Eje Z (rotación vertical de la base)
+- q2: Eje Y (rotación del hombro en el plano vertical)
+- q3: Eje Y (rotación del codo, normalmente paralela a q2)
+- q4: Eje X (rotación de roll de la muñeca)
+- q5: Eje Y (rotación de pitch de la muñeca)
+- q6: Eje X (rotación de yaw/giro final de la muñeca)
+
+JUSTIFICACIÓN: Cada articulación de revolución genera una velocidad angular 
+alrededor de su eje Z local según la convención de Denavit-Hartenberg. Las 
+filas wx, wy, wz de la Jacobiana mostrarán en cada columna las componentes 
+del vector unitario del eje de rotación de esa articulación, expresadas en 
+el sistema de referencia de la base.
+
+--------------------------------------------------------------------------------
+4. ¿Cuál es el rango de la matriz Jacobiana? Razona la respuesta.
+--------------------------------------------------------------------------------
+
+En la posición home (q=0), el robot ABB típicamente tiene:
+
+- RANGO 6: Si el brazo NO está en singularidad (configuración genérica)
+- RANGO 5: Si el brazo está en singularidad de codo (brazo completamente 
+  extendido o completamente plegado)
+
+Para un robot de 6 ejes, el rango máximo posible es 6. En la posición home, 
+si q2 y q3 están en valores que extienden completamente el brazo (codo 
+alineado), el robot está en una singularidad de codo y el rango será 5.
+
+JUSTIFICACIÓN: El rango indica el número de direcciones independientes en las 
+que el TCP puede moverse instantáneamente. Una singularidad (rango < 6) 
+significa que el robot pierde al menos un grado de libertad instantáneo, 
+típicamente porque dos o más articulaciones producen el mismo efecto en el 
+TCP en esa configuración.
+
+
+================================================================================
+EJERCICIO 2 - ROBOT SCARA (línea 7 activa en main.m)
+================================================================================
+
+Para la configuración "Home" con q=0:
+
+--------------------------------------------------------------------------------
+1. Según la jacobiana del robot, ¿en qué dirección afecta la tercera 
+   articulación? Justifica la respuesta.
+--------------------------------------------------------------------------------
+
+La tercera articulación del SCARA es PRISMÁTICA y está orientada verticalmente.
+
+Afecta ÚNICAMENTE a la dirección Z.
+
+La tercera columna de la Jacobiana será:
+J3 = [0, 0, 1, 0, 0, 0]ᵀ
+
+JUSTIFICACIÓN: 
+- Componentes de velocidad lineal: [0, 0, 1] → solo movimiento en Z
+- Componentes de velocidad angular: [0, 0, 0] → una articulación prismática 
+  NO genera rotación
+
+Esto es coherente con una articulación prismática vertical: al moverla, el 
+TCP se desplaza verticalmente sin cambiar su orientación.
+
+--------------------------------------------------------------------------------
+2. Para modificar la posición en Y, ¿qué variables articulares podemos 
+   utilizar? Justifica la respuesta.
+--------------------------------------------------------------------------------
+
+Podemos utilizar las articulaciones q1 y q2 (las dos articulaciones de 
+revolución horizontales).
+
+JUSTIFICACIÓN: 
+La segunda fila de la Jacobiana (vy) en home (q=0) mostrará valores del tipo:
+vy = [L1+L2, L2, 0, 0]
+
+Donde:
+- L1 y L2 son las longitudes de los dos eslabones horizontales
+- La columna 1 (q1) tiene valor L1+L2 ≠ 0 → q1 SÍ afecta a Y
+- La columna 2 (q2) tiene valor L2 ≠ 0 → q2 SÍ afecta a Y
+- La columna 3 (q3) tiene valor 0 → q3 NO afecta a Y (es vertical)
+- La columna 4 (q4) tiene valor 0 → q4 NO afecta a Y (solo rota alrededor de Z)
+
+Por tanto, para mover el TCP en dirección Y, debemos utilizar q1 y/o q2.
+
+--------------------------------------------------------------------------------
+3. En la posición "Home", ¿está en una configuración singular? Razona la 
+   respuesta.
+--------------------------------------------------------------------------------
+
+SÍ, el robot SCARA en la posición home (q=0) con q2=0 está en una 
+CONFIGURACIÓN SINGULAR (singularidad de codo extendido).
+
+JUSTIFICACIÓN:
+- El robot SCARA tiene 4 articulaciones
+- La matriz Jacobiana es de dimensión 6×4
+- El rango máximo posible sería min(6,4) = 4
+- Sin embargo, en home con q2=0, el RANGO es 3 (menor que 4)
+
+RAZÓN FÍSICA: Con el brazo completamente extendido (q2=0), los dos eslabones 
+horizontales están alineados. En esta configuración:
+- Las columnas J1, J2 y J4 de la Jacobiana son linealmente DEPENDIENTES
+- Los tres ejes (q1, q2, q4) producen rotaciones alrededor de ejes paralelos 
+  (todos paralelos a Z)
+- El robot pierde un grado de libertad instantáneo
+- Hay direcciones en el espacio de trabajo donde el TCP no puede moverse 
+  instantáneamente
+
+--------------------------------------------------------------------------------
+4. Si movemos la posición de la articulación 1 del robot, ¿consigue salir de 
+   la configuración singular que tiene en la posición "Home"? Razona la 
+   respuesta.
+--------------------------------------------------------------------------------
+
+NO, mover q1 NO permite salir de la configuración singular.
+
+JUSTIFICACIÓN:
+La singularidad de codo extendido del SCARA depende del ángulo q2 (ángulo 
+del codo), NO de q1.
+
+- Mover q1: Solo rota TODO el brazo alrededor del eje Z vertical
+- El brazo sigue ESTIRADO (q2=0)
+- La alineación entre los dos eslabones horizontales persiste
+- La dependencia lineal entre las columnas J1, J2 y J4 se mantiene para 
+  cualquier valor de q1 mientras q2=0
+
+Para SALIR de la singularidad es necesario:
+- Mover la articulación q2 (doblar el codo)
+- Cuando q2 ≠ 0, los dos eslabones ya no están alineados
+- Las columnas de la Jacobiana se vuelven linealmente independientes
+- El rango aumenta a 4 (rango completo)
+
+CONCLUSIÓN: Solo moviendo q2 se puede salir de la singularidad de codo.

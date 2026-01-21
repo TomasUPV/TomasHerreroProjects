@@ -1,0 +1,274 @@
+===============================================================
+ACTIVIDAD 1 - PRÁCTICA 2b
+ROBOT ABB IRB140 - CINEMÁTICA DIRECTA DENAVIT-HARTENBERG
+===============================================================
+
+DATOS DEL ROBOT ABB IRB140 (según datasheet oficial)
+===============================================================
+
+Tipo: Robot industrial antropomórfico de 6 ejes
+Modelo: IRB 140-6/0.8
+Grados de libertad: 6 (todos rotacionales)
+Alcance máximo: 810 mm
+Carga útil: 6 kg
+Repetibilidad de pose (RP): ±0.03 mm
+Peso del robot: 98 kg
+Protección: IP67
+
+
+===============================================================
+TABLA DE PARÁMETROS DENAVIT-HARTENBERG
+===============================================================
+
+Basado en datasheet oficial ABB IRB140 y Robotics Toolbox
+
+Valores en metros y radianes:
+
+i  |  θi (rad)   |  di (m)   |  ai (m)   |  αi (rad)
+---|-------------|-----------|-----------|------------
+1  |    θ₁       |  0.352    |  0.070    |  -π/2
+2  |  θ₂ - π/2   |  0.000    |  0.360    |   0
+3  |    θ₃       |  0.000    |  0.000    |   π/2
+4  |    θ₄       |  0.380    |  0.000    |  -π/2
+5  |    θ₅       |  0.000    |  0.000    |   π/2
+6  |    θ₆       |  0.065    |  0.000    |   0
+
+
+Valores en milímetros (para MATLAB):
+
+i  |  θi (rad)   |  di (mm)  |  ai (mm)  |  αi (rad)
+---|-------------|-----------|-----------|------------
+1  |    θ₁       |   352     |    70     |  -π/2
+2  |  θ₂ - π/2   |    0      |   360     |   0
+3  |    θ₃       |    0      |    0      |   π/2
+4  |    θ₄       |   380     |    0      |  -π/2
+5  |    θ₅       |    0      |    0      |   π/2
+6  |    θ₆       |   65      |    0      |   0
+
+
+NOTAS IMPORTANTES:
+==================
+
+1. **Offset de -90° en Articulación 2:**
+   La articulación 2 tiene un offset de -90° (θ₂ - π/2).
+   Esto es característico del diseño del ABB IRB140 y es necesario
+   para que la posición "home" (todos los ángulos a 0°) corresponda
+   con la configuración física del robot.
+
+2. **Signo de α₁:**
+   α₁ = -π/2 (no +π/2). Esto define la orientación correcta
+   entre los ejes Z₀ y Z₁.
+
+
+===============================================================
+LÍMITES DE ARTICULACIONES (según datasheet página 34)
+===============================================================
+
+Articulación | Mínimo  | Máximo  | Descripción
+-------------|---------|---------|---------------------------
+Axis 1       | -180°   | +180°   | Rotación base
+Axis 2       |  -90°   | +110°   | Movimiento del brazo
+Axis 3       | -230°   |  +50°   | Movimiento del brazo
+Axis 4       | -200°   | +200°   | Movimiento de muñeca
+Axis 5       | -115°   | +115°   | Flexión de muñeca
+Axis 6       | -400°   | +400°   | Giro de muñeca
+
+
+===============================================================
+DIMENSIONES FÍSICAS DEL ROBOT
+===============================================================
+
+Según el datasheet (página 13):
+
+d1 = 352 mm  (altura de la base hasta axis 2)
+a1 = 70 mm   (offset horizontal de axis 2)
+a2 = 360 mm  (longitud del brazo superior)
+d4 = 380 mm  (longitud del antebrazo)
+d6 = 65 mm   (longitud del último eslabón hasta TCP)
+
+
+===============================================================
+PUNTO DE MUÑECA
+===============================================================
+
+Longitud del último eslabón: 65 mm
+
+El punto de muñeca se calcula retrocediendo desde el TCP
+una distancia de 65 mm en la dirección del eje Z₆.
+
+Fórmula:
+PM = TCP - 65 * Z₆
+
+Donde Z₆ es el vector del eje Z del sistema de coordenadas 6.
+
+
+===============================================================
+ARCHIVOS IMPLEMENTADOS
+===============================================================
+
+1. parametrosSimuladorABB_IRB140sym.m
+   ✓ Define todos los parámetros DH según datasheet oficial
+   ✓ Establece límites correctos de articulaciones
+   ✓ Configura dimensiones del entorno de simulación
+   ✓ Incluye offset de -90° en articulación 2
+
+2. DH_transHomogenea.m
+   ✓ Calcula matriz de transformación homogénea 4x4
+   ✓ Parámetros DH: θ, d, a, α
+   ✓ Fórmula: T = RotZ(θ) × TrasZ(d) × TrasX(a) × RotX(α)
+   ✓ Optimizada con precálculo trigonométrico
+
+3. calcularMTsym.m
+   ✓ Calcula matrices de transformación acumuladas
+   ✓ Desde la base (0) hasta cada articulación (1-6)
+   ✓ Salidas: T_01, T_02, T_03, T_04, T_05, T_06
+   ✓ Usa DH_transHomogenea para cada transformación
+
+
+===============================================================
+TRANSFORMACIÓN DENAVIT-HARTENBERG
+===============================================================
+
+Matriz de transformación homogénea:
+
+     | cos(θ)  -sin(θ)cos(α)   sin(θ)sin(α)   a·cos(θ) |
+T =  | sin(θ)   cos(θ)cos(α)  -cos(θ)sin(α)   a·sin(θ) |
+     |   0         sin(α)          cos(α)         d     |
+     |   0           0               0           1     |
+
+Donde:
+- θ: ángulo de rotación alrededor del eje Z_{i-1}
+- d: distancia a lo largo del eje Z_{i-1}
+- a: distancia a lo largo del eje X_i
+- α: ángulo de rotación alrededor del eje X_i
+
+
+===============================================================
+CONFIGURACIÓN HOME DEL ROBOT
+===============================================================
+
+Posición home (todas las articulaciones a 0°):
+θ₁ = 0°
+θ₂ = 0°  (internamente se usa -90° por el offset)
+θ₃ = 0°
+θ₄ = 0°
+θ₅ = 0°
+θ₆ = 0°
+
+En esta configuración:
+- El robot está en posición vertical
+- El brazo apunta hacia adelante
+- El TCP está aproximadamente a:
+  X = 430 mm (70 + 360 + 0)
+  Y = 0 mm
+  Z = 997 mm (352 + 0 + 380 + 0 + 65)
+
+
+===============================================================
+VALIDACIÓN
+===============================================================
+
+Para validar que las funciones están correctamente implementadas:
+
+1. Ejecutar main.m en MATLAB
+2. Verificar que aparece el entorno 3D con el robot
+3. Configurar todas las articulaciones a 0°
+4. Verificar posición TCP ≈ (430, 0, 997) mm
+5. Mover los scrolls de las articulaciones
+6. Comprobar que:
+   ✓ El robot se mueve correctamente
+   ✓ No hay saltos o discontinuidades
+   ✓ Los valores de posición son coherentes
+   ✓ El TCP y punto de muñeca se calculan correctamente
+   ✓ Los ejes DH están bien posicionados
+   ✓ El robot respeta los límites de articulaciones
+
+Posiciones de prueba recomendadas:
+- Home: [0, 0, 0, 0, 0, 0]
+- Extendido: [0, -90, 0, 0, 0, 0]
+- Vertical: [0, 90, -90, 0, 0, 0]
+
+
+===============================================================
+ESTRUCTURA DEL ROBOT ABB IRB140
+===============================================================
+
+        ┌─── TCP (Tool Center Point)
+        │    d6 = 65 mm
+        6 ← Axis 6 (rotación herramienta)
+        │
+        5 ← Axis 5 (flexión muñeca)
+        │
+        4 ← Axis 4 (rotación antebrazo)
+        │    d4 = 380 mm
+    ────┴──── ← Antebrazo
+        │
+        3 ← Axis 3 (codo)
+        │    a2 = 360 mm
+    ────┴──── ← Brazo superior
+        │
+        2 ← Axis 2 (hombro)
+        │    d1 = 352 mm
+        │    a1 = 70 mm (offset)
+        1 ← Axis 1 (base rotacional)
+        │
+    ═══════ ← Plataforma base
+
+
+===============================================================
+DIFERENCIAS CON OTRAS PARAMETRIZACIONES
+===============================================================
+
+IMPORTANTE: Existen múltiples parametrizaciones DH válidas para
+el mismo robot. La que se usa aquí está basada en:
+
+1. Robotics Toolbox de Peter Corke (referencia académica estándar)
+2. Documentación técnica verificada del IRB140
+3. Papers académicos de universidades (PSU, UMH)
+
+Diferencias comunes que puedes encontrar:
+- Algunos usan α₁ = +π/2 en lugar de -π/2
+- Algunos no incluyen el offset de -90° en θ₂
+- El orden de los parámetros puede variar (a,d,α,θ vs θ,d,a,α)
+
+Todas son válidas si se usan consistentemente.
+La parametrización elegida aquí es la más común en robótica.
+
+
+===============================================================
+VELOCIDADES MÁXIMAS (según datasheet página 38)
+===============================================================
+
+IRB 140-6/0.8:
+- Axis 1: 200°/s
+- Axis 2: 200°/s
+- Axis 3: 260°/s
+- Axis 4: 360°/s
+- Axis 5: 360°/s
+- Axis 6: 450°/s
+
+IRB 140T-6/0.8 (versión alta velocidad):
+- Axis 1: 250°/s
+- Axis 2: 250°/s
+- Axis 3: 260°/s
+- Axis 4: 360°/s
+- Axis 5: 360°/s
+- Axis 6: 450°/s
+
+
+===============================================================
+REFERENCIAS
+===============================================================
+
+[1] ABB Robotics Product Specification IRB 140
+    Document ID: 3HAC041346-001 Revision: Q
+    
+[2] Peter Corke, Robotics Toolbox for MATLAB
+    https://github.com/petercorke/robotics-toolbox-matlab
+    
+[3] ARTE Robotics Toolbox (Universidad Miguel Hernández)
+    
+[4] International Journal of Electronics, Mechanical and 
+    Mechatronics Engineering, Vol.7 Num.2 - 2017
+
+===============================================================

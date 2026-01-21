@@ -1,0 +1,222 @@
+V "GNAT Lib v2020"
+M P W=b
+A -gnatA
+A --RTS=D:\software\gnat2020-arm\arm-eabi\lib\gnat\ravenscar-full-zynq7000\
+A -mlittle-endian
+A -mfloat-abi=hard
+A -mcpu=cortex-a9
+A -mfpu=vfpv3
+A -marm
+A -mno-unaligned-access
+A -march=armv7-a+mp+sec+vfpv3
+P DB LC TF  ZX
+
+RN
+RV NO_DELAY
+RV NO_DIRECT_BOOLEAN_OPERATORS
+RV NO_FIXED_POINT
+RV NO_FLOATING_POINT
+RV NO_RELATIVE_DELAY
+RV NO_DYNAMIC_SIZED_OBJECTS
+RV NO_IMPLEMENTATION_PRAGMAS
+RV MAX_ENTRY_QUEUE_LENGTH=1+
+
+U demo%b		demo.adb		42306aff NE OO SU
+W ada%s			ada.ads			ada.ali
+W ada.real_time%s	a-reatim.adb		a-reatim.ali
+W gpio%s		gpio.adb		gpio.ali
+Z interfaces%s		interfac.ads		interfac.ali
+W system%s		system.ads		system.ali
+Z system.img_bool%s	s-imgboo.adb		s-imgboo.ali
+Z system.img_int%s	s-imgint.adb		s-imgint.ali
+Z system.img_real%s	s-imgrea.adb		s-imgrea.ali
+W system.multiprocessors%s  s-multip.adb	s-multip.ali
+Z system.relative_delays%s  s-reldel.adb	s-reldel.ali
+W uart%s		uart.adb		uart.ali
+
+D ada.ads		20210507074300 76789da1 ada%s
+D a-except.ads		20210507074300 a7106115 ada.exceptions%s
+D a-reatim.ads		20210507074302 4c16970e ada.real_time%s
+D a-unccon.ads		20210507074300 0e9b276f ada.unchecked_conversion%s
+D demo.adb		20251218143144 fb3422b4 demo%b
+D gpio.ads		20251217185712 86b89b5c gpio%s
+D interfac.ads		20210507074300 5ab55268 interfaces%s
+D system.ads		20210507074302 da70b04d system%s
+D s-bb.ads		20210507074300 09e072ae system.bb%s
+D s-bbbosu.ads		20210507074302 b43d4db6 system.bb.board_support%s
+D s-bbcppr.ads		20210507074302 59b80593 system.bb.cpu_primitives%s
+D s-bbcpsp.ads		20210507074302 720822f6 system.bb.cpu_specific%s
+D s-bbinte.ads		20210507074302 c88d39da system.bb.interrupts%s
+D s-bbpara.ads		20210507074302 b8769de5 system.bb.parameters%s
+D s-bbthre.ads		20210507074302 c94b446f system.bb.threads%s
+D s-bbthqu.ads		20210507074302 db3cad46 system.bb.threads.queues%s
+D s-bbtime.ads		20210507074302 ad086247 system.bb.time%s
+D s-imgboo.ads		20210507074300 f5d971eb system.img_bool%s
+D s-imgint.ads		20210507074300 02dbe0c2 system.img_int%s
+D s-imgrea.ads		20210507074300 9f9b9792 system.img_real%s
+D s-multip.ads		20210507074302 f33e0e35 system.multiprocessors%s
+D s-mufalo.ads		20210507074302 3dca0374 system.multiprocessors.fair_locks%s
+D s-musplo.ads		20210507074302 69fa25c4 system.multiprocessors.spin_locks%s
+D s-osinte.ads		20210507074302 229b14dd system.os_interface%s
+D s-parame.ads		20210507074302 96993d70 system.parameters%s
+D s-reldel.ads		20210507074302 d2ec2544 system.relative_delays%s
+D s-secsta.ads		20210507074300 56a2861c system.secondary_stack%s
+D s-stalib.ads		20210507074302 6b7a13f2 system.standard_library%s
+D s-stoele.ads		20210507074300 2dc34a04 system.storage_elements%s
+D s-tasinf.ads		20210507074302 801abd01 system.task_info%s
+D s-taspri.ads		20210507074302 351848fa system.task_primitives%s
+D s-taskin.ads		20210507074302 58b15916 system.tasking%s
+D s-taprob.ads		20210507074302 c8fc0753 system.tasking.protected_objects%s
+D s-tasres.ads		20210507074302 0c8ef6fb system.tasking.restricted%s
+D s-tarest.ads		20210507074302 c88b6d9a system.tasking.restricted.stages%s
+D s-traent.ads		20210507074302 005bf670 system.traceback_entries%s
+D s-unstyp.ads		20210507074300 5ecf7212 system.unsigned_types%s
+D uart.ads		20251211140732 80944a2c uart%s
+G a e
+G c Z b b [demo standard 6 11 none]
+G r c none [demo standard 6 11 none] [inituart uart 3 13 none]
+G r c none [demo standard 6 11 none] [init gpio 202 14 none]
+G r c none [demo standard 6 11 none] [put_line uart 9 13 none]
+G r p none [demo standard 6 11 none] [get_s_i gpio__datos_sensores 176 16 none]
+G r p none [demo standard 6 11 none] [get_s_d gpio__datos_sensores 177 16 none]
+G r p none [demo standard 6 11 none] [get_infrarrojos gpio__datos_sensores 178 16 none]
+G r p none [demo standard 6 11 none] [get_distancia gpio__datos_sensores 175 16 none]
+G r c none [demo standard 6 11 none] [readbutton0 gpio 206 13 none]
+G r c none [demo standard 6 11 none] [readbutton1 gpio 207 13 none]
+G r c none [demo standard 6 11 none] [put uart 6 13 none]
+G r c none [demo standard 6 11 none] [new_line uart 10 13 none]
+G r p none [demo standard 6 11 none] [set_en gpio__contador_ctrl 196 17 none]
+G r c none [demo standard 6 11 none] [enciendergb gpio 208 14 none]
+G r c none [demo standard 6 11 none] [para gpio 222 14 none]
+G r c none [demo standard 6 11 none] [avanza gpio 221 14 none]
+G r c none [demo standard 6 11 none] [giroizq gpio 223 14 none]
+G r c none [demo standard 6 11 none] [girodrcha gpio 224 14 none]
+X 1 ada.ads
+16K9*Ada 20e8 5|2r6 2r25
+X 3 a-reatim.ads
+41K13*Real_Time 182e18 5|2w10 2r29
+51M9*Time<17|46M9> 5|20r25 37r25 51r23
+61I9*Time_Span<17|81I9> 5|18r20 19r21
+68V13*Clock{51M9}<17|134p13> 5|215s35 225s38 234s41 242s38 247s38 252s38
+. 257s38 266s16 279s16 284s16 289s16 309s16 311s36 334s16 336s36
+76V14*"-"{61I9} 5|266s22 279s22 284s22 289s22 309s22 334s22
+114V14*">"{boolean} 5|309r41 334r41
+116V14*">="{boolean} 5|266r43 279r43 284r43 289r43
+128V13*Milliseconds{61I9} 5|18s33 19s34 266s46 309s43 334s43
+X 5 demo.adb
+6U11*Demo 6b11 384l5 384t9
+8b4 izq{boolean} 141m7 175r20 220r37 231r19
+8b9 drcha{boolean} 142m7 176r25 220r44 231r26
+9f4 distancia{float} 104r14 144r29 145m7 177r24 193r19 193r39 194r56 197r34
+. 223r42 229r40 232r19 235r46 240r19 243r43 245r19 245r41 248r48 250r19 250r42
+. 253r48 255r19 255r42 258r48
+9f15 d_min{float} 118m4 245r31 255r55
+9f22 d_max{float} 119m4 232r31 240r31 250r55
+9f29 dp_min{float} 120m4 202m16 206r62 255r31
+9f37 dp_max{float} 121m4 203m16 207r32 250r31
+10i4 n_inf{integer} 143m7 179r28 227r19
+10i11 n_infL{integer} 122m4 227r28
+13E9 estado 14e89 15r14
+13n20 Espera_Inicio{13E9} 117r15 153r23 161r24 187r15 300r15
+13n35 Calibracion{13E9} 154r24 190r15 306r15
+13n48 Inicio{13E9} 208r27 213r15 320r15
+13n56 Avanzar{13E9} 216r24 218r15 237r30 261r27 268r27 280r27 285r27 290r27
+. 325r15
+13n65 Detectar_Salida{13E9} 228r27 272r15 347r15
+13n82 Parar{13E9} 160r23 273r24 275r15 352r15
+14n20 Girar_Derecha{13E9} 233r30 241r27 278r15 358r15
+14n35 GirarP_Derecha{13E9} 251r27 283r15 364r15
+14n51 GirarP_Izquierda{13E9} 246r27 256r27 288r15 370r15
+14n69 Recuperacion_Atasco{13E9} 222r27 264r15 331r15
+15e4 eActual{13E9} 117m4 153r13 154m13 160r13 161m13 186r12 208m16 216m13
+. 222m16 228m16 233m19 237m19 241m16 246m16 251m16 256m16 261m16 268m16 273m13
+. 280m16 285m16 290m16 299r12
+18i4 T_Giro_Grande{3|61I9} 279r46
+19i4 T_Giro_Pequeno{3|61I9} 284r46 289r46
+20m4 Tiempo_Giro_Inicio{3|51M9} 234m19 242m16 247m16 252m16 257m16 279r24
+. 284r24 289r24
+23b4 btn0_pressed{boolean} 148m7 151r10 171r24
+23b18 btn1_pressed{boolean} 149m7 158r10 172r24
+24b4 btn0_anterior{boolean} 151r31 171m7
+24b19 btn1_anterior{boolean} 158r31 172m7
+31f4 distancia_anterior{float} 104r26 144m7
+32i4 muestras_calibracion{integer} 192r16 195m19 195r43 196r56 209m16
+33f4 suma_distancias{float} 194m19 194r38 201r39 210m16
+34f4 distancia_calibrada{float} 201m16 202r26 203r26 205r64 326r53
+37m4 tiempo_sin_avanzar{3|51M9} 215m13 225m16 266r24
+38i4 contador_atascos{integer} 93r56 165m13 224m16 224r36
+39i4 distancia_estable_count{integer} 105m10 105r37 107m10 110r14 269m16
+40i4 UMBRAL_ATASCO{integer} 110r40
+43E9 TipoEvento 44e72 71r31
+43n24 Evento_Avance{43E9}
+43n39 Evento_Giro_90{43E9} 76r15 235r30 243r27
+43n55 Evento_Reajuste_Der{43E9} 80r15 253r27
+44n24 Evento_Reajuste_Izq{43E9} 83r15 248r27 258r27
+44n45 Evento_Atasco{43E9} 86r15 223r27
+44n60 Evento_Meta{43E9} 88r15 229r27
+45i4 contador_giros_grandes{integer} 77m13 77r39 79r21 91r59 163m13 359r46
+46i4 contador_reajustes{integer} 81m13 81r35 84m13 84r35 92r56 164m13 365r56
+. 371r56
+47i4 contador_total_eventos{integer} 73m7 73r33 166m13 179r59
+50b4 debug_mode{boolean}
+51m4 debug_blink_time{3|51M9} 309r24 311m16 334r24 336m16
+52b4 debug_blink_state{boolean} 310m16 310r41 313r16 335m16 335r41 338r16
+55b4 velocidad_optima{boolean}
+56f4 distancia_promedio{float} 94r65
+58U14 Check_SMP 58b14 68l8 68t17
+71U14 Log_Evento 71b14 71>25 71>43 98l8 98t18 223s16 229s16 235s19 243s16
+. 248s16 253s16 258s16
+71e25 tipo{43E9} 75r12
+71f43 distancia_actual{float} 82r62 85r64
+101V13 Detectar_Atasco{boolean} 101b13 111l8 111t23 220s16
+X 6 gpio.ads
+5K9*GPIO 5|3w6 3r16 6|234e9
+31n21*off{31E9} 5|314r36 316r28 322r25 322r30
+31n26*red{31E9} 5|339r28 339r33 354r25 354r30 360r25
+31n31*green{31E9} 5|327r25 327r32 341r28 341r35 360r30 366r25 372r31
+31n38*blue{31E9} 5|349r25 349r31 366r32 372r25
+31n44*violet{31E9} 5|302r25 302r33 314r28 316r33
+170w14*Datos_Sensores 5|141r14 142r16 143r16 145r20
+175V16 Get_Distancia{float} 5|145s35
+176V16 Get_S_I{boolean} 5|141s29
+177V16 Get_S_D{boolean} 5|142s31
+178V16 Get_Infrarrojos{integer} 5|143s31
+195w14*Contador_ctrl 5|214r13 304r13 329r13 345r13 356r13 362r13 368r13 374r13
+196U17 Set_EN 5|214s27 304s27 329s27 345s27 356s27 362s27 368s27 374s27
+202U14*Init 5|115s4
+206V13*ReadButton0{boolean} 5|148s23
+207V13*ReadButton1{boolean} 5|149s23
+208U14*EnciendeRGB 5|302s13 314s16 316s16 322s13 327s13 339s16 341s16 349s13
+. 354s13 360s13 366s13 372s13
+221U14*Avanza 5|328s13
+222U14*Para 5|303s13 318s13 323s13 350s13 355s13
+223U14*GiroIzq 5|344s13 373s13
+224U14*GiroDrcha 5|361s13 367s13
+X 8 system.ads
+45K9*System 5|4r6 4r33 61r34 63r10 8|168e11
+X 17 s-bbtime.ads
+46M9*Time
+81I9*Time_Span<long_long_integer>
+X 21 s-multip.ads
+18K16*Multiprocessors 5|4w13 4r40 61r41 63r17 21|31e27
+21I9*CPU_Range<short_short_integer> 5|61r18
+23I12*CPU{21I9}
+27V13*Number_Of_CPUs{23I12} 5|61s57 63s33
+X 27 s-secsta.ads
+46P9*SS_Stack_Ptr(43R9)
+X 32 s-taskin.ads
+407V13*Get_Sec_Stack{27|46P9} 408i<c,__gnat_get_secondary_stack>22
+X 35 s-tarest.ads
+232U14*Activate_All_Tasks_Sequential 233i<c,__gnat_activate_all_tasks>22
+X 38 uart.ads
+1K9*UART 5|1w6 1r16 38|12e9
+3U13*InitUART 5|114s4
+3i22 nUart{integer} 5|114r13
+6U13*Put 5|175s7 176s7 177s7
+9U13*Put_Line 5|60s7 64s10 66s10 78s13 82s13 85s13 87s13 89s13 90s13 91s13
+. 92s13 93s13 94s13 124s4 125s4 126s4 127s4 128s4 129s4 130s4 131s4 132s4
+. 133s4 134s4 135s4 136s4 137s4 152s10 159s10 167s13 179s7 196s19 204s16
+. 205s16 206s16 221s16 267s16 301s13 307s13 321s13 326s13 332s13 348s13 353s13
+. 359s13 365s13 371s13
+10U13*New_Line 5|178s7 180s7
+
